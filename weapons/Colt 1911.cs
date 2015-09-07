@@ -64,6 +64,7 @@ datablock ShapeBaseImageData(Colt1911Image)
     armReady = 1;
 
     stateName[0] = "Activate";
+	stateSequence[0] = "activate";
     stateTimeoutValue[0] = 0.15;
     stateTransitionOnTimeout[0] = "CheckChamber";
 
@@ -72,22 +73,41 @@ datablock ShapeBaseImageData(Colt1911Image)
     stateTransitionOnNotLoaded[1] = "Empty";
 
     stateName[2] = "Empty";
+	stateSequence[2] = "noammo";
     stateTransitionOnLoaded[2] = "Ready";
     stateTransitionOnTriggerDown[2] = "EmptyFire";
 
     stateName[3] = "EmptyFire";
     stateScript[3] = "onEmptyFire";
+	stateSequence[3] = "emptyFire";
+	stateTimeoutValue[3] = 0.13;
+	stateWaitForTimeout[3] = true;
+	stateAllowImageChange[3] = false;
     stateTransitionOnTriggerUp[3] = "Empty";
 
     stateName[4] = "Ready";
+	stateSequence[4] = "root";
     stateTransitionOnTriggerDown[4] = "Fire";
 
     stateName[5] = "Fire";
     stateFire[5] = true;
     stateScript[5] = "onFire";
+	stateSequence[5] = "Fire";
     stateTimeoutValue[5] = 0.12;
-    stateWaitForTimeout[5] = true;
-    stateTransitionOnTriggerUp[5] = "CheckChamber";
+	stateEmitter[5] = advSmallBulletFireEmitter;
+	stateEmitterTime[5] = 0.05;
+	stateEmitterNode[5] = "muzzleNode";
+	stateAllowImageChange[5] = false;
+    stateTransitionOnTimeout[5] = "Smoke";
+
+	stateName[6] = "Smoke";
+	stateEmitter[6] = advSmallBulletSmokeEmitter;
+	stateEmitterTime[6] = 0.05;
+	stateEmitterNode[6] = "muzzleNode";
+	stateTimeoutValue[6] = 0.1;
+	stateWaitForTimeout[6] = true;
+	stateAllowImageChange[6] = false;
+	stateTransitionOnTriggerUp[6] = "CheckChamber";
 };
 
 function Colt1911Image::getDebugText(%this, %obj, %slot)

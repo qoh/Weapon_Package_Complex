@@ -6,11 +6,14 @@ exec("./support/hitregion.cs");
 // exec("./support/lagcompensation.cs");
 exec("./support/movespeed.cs");
 
+exec("./adventure_Effects.cs");
+
 exec("./calculations.cs");
 exec("./magazines.cs");
 
 exec("./weapons/HE Grenade.cs");
 exec("./weapons/Colt 1911.cs");
+exec("./weapons/Revolver.cs");
 exec("./weapons/M24 Rifle.cs");
 
 function Player::debugWeapon(%this)
