@@ -1,19 +1,23 @@
-function Player::getItemProps(%this, %image, %slot)
+function Player::getItemProps(%this, %slot)
 {
-    if (%this.currTool == -1 || !isObject(%image.item) ||
-        %this.getMountedImage(%slot) != %image.getID() ||
-        %image.item.getID() != %this.tool[%this.currTool])
+    if (%slot $= "")
     {
-        return 0;
+        if (%this.currTool == -1)
+            return 0;
+
+        %slot = %this.currTool;
     }
 
-    if (!isObject(%this.itemProps[%this.currTool]))
-        %this.itemProps[%this.currTool] = %image.item.newItemProps(%this);
+    if (!isObject(%this.tool[%slot]))
+        return 0;
 
-    return %this.itemProps[%this.currTool];
+    if (!isObject(%this.itemProps[%slot]))
+        %this.itemProps[%slot] = %this.tool[%slot].newItemProps(%this, %slot);
+
+    return %this.itemProps[%slot];
 }
 
-function ItemData::newItemProps(%this, %player)
+function ItemData::newItemProps(%this, %player, %slot)
 {
     %props = new ScriptObject()
     {
@@ -24,7 +28,7 @@ function ItemData::newItemProps(%this, %player)
         sourcePlayer = %player;
         sourceClient = %player.client;
 
-        itemSlot = %player.currTool;
+        itemSlot = %slot;
     };
 
     %props.onOwnerChange(%player);
@@ -54,12 +58,14 @@ package ItemPropsPackage
         Parent::setDataBlock(%this, %data);
     }
 
-    function Player::mountImage(%this, %image, %slot, %y, %z)
+    function Player::mountImage(%this, %image, %slot, %loaded, %skinTag)
     {
-        Parent::mountImage(%this, %image, %slot, %y, %z);
+        Parent::mountImage(%this, %image, %slot, %loaded, %skinTag);
 
         if (%this.getMountedImage(%slot).item.itemPropsAlways)
             %this.getItemProps(%this.getMountedImage(%slot), %slot);
+
+        %this.debugWeapon();
     }
 
     function Armor::onRemove(%this, %player)
@@ -108,13 +114,15 @@ package ItemPropsPackage
                 $DroppedItemProps.delete();
             else
                 $DroppedItemProps = "";
+
+            %player.itemProps[%index] = "";
         }
     }
 
     function Armor::onCollision(%this, %obj, %col, %velocity, %speed)
     {
         if (%obj.getState() !$= "Dead" && %obj.getDamagePercent() < 1 &&
-            %col.getClassName() $= "Item" && isObject(%col.itemProps))
+            %col.getClassName() $= "Item" && (isObject(%col.itemProps) || %col.getDataBlock().customPickupAlways))
         {
             if (%col.canPickup == 0)
                 return;
@@ -138,7 +146,7 @@ package ItemPropsPackage
                 if (!isObject(%obj.tool[%i]))
                     break;
 
-                if (%obj.tool[%i] == %data)
+                if (!%data.customPickupMultiple && %obj.tool[%i] == %data)
                     return;
             }
 
@@ -169,12 +177,16 @@ package ItemPropsPackage
             }
 
             %obj.tool[%i] = %data;
-            %obj.itemProps[%i] = %col.itemProps;
 
-            // improve this later
-            %col.itemProps.itemSlot = %i;
-            %col.itemProps.onOwnerChange(%obj);
-            %col.itemProps = "";
+            if (isObject(%col.itemProps))
+            {
+                %obj.itemProps[%i] = %col.itemProps;
+
+                // improve this later
+                %col.itemProps.itemSlot = %i;
+                %col.itemProps.onOwnerChange(%obj);
+                %col.itemProps = "";
+            }
 
             messageClient(%client, 'MsgItemPickup', '', %i, %data);
 
@@ -187,6 +199,20 @@ package ItemPropsPackage
         }
 
         Parent::onCollision(%this, %obj, %col, %velocity, %speed);
+    }
+
+    function serverCmdUseTool(%client, %index)
+    {
+        %player = %client.player;
+
+        if (isObject(%player) && !isObject(%player.tool[%index].image))
+        {
+            %player.unMountImage(0);
+            fixArmReady(%player);
+            return;
+        }
+
+        Parent::serverCmdUseTool(%client, %index);
     }
 };
 

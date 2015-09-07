@@ -1,10 +1,13 @@
 exec("./support/imagetrigger.cs");
 exec("./support/itemprops.cs");
+exec("./support/itemfuncs.cs");
 exec("./support/timedraycast.cs");
 exec("./support/hitregion.cs");
 // exec("./support/lagcompensation.cs");
+exec("./support/movespeed.cs");
 
 exec("./calculations.cs");
+exec("./magazines.cs");
 
 exec("./weapons/HE Grenade.cs");
 exec("./weapons/Colt 1911.cs");
@@ -18,9 +21,16 @@ function Player::debugWeapon(%this)
     {
         %image = %this.getMountedImage(0);
 
-        if (isObject(%image) && isFunction(%image.getName(), "getDebugText"))
-            %this.client.bottomPrint(%image.getDebugText(%this, 0), 0.3, 1);
+        if (isObject(%image))
+        {
+            %text = "\c6" @ %image.getName() @ " in " @ %this.getImageState(0) @ "\n";
+
+            if (isFunction(%image.getName(), "getDebugText"))
+                %text = %text @ %image.getDebugText(%this, 0);
+
+            %this.client.bottomPrint(%text, 0.3, 1);
+        }
     }
-    
+
     %this.debugWeapon = %this.schedule(50, "debugWeapon");
 }

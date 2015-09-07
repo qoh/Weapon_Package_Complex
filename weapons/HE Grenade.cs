@@ -10,12 +10,11 @@ datablock ItemData(HEGrenadeItem)
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/grenade.dts";
 	mass = 1;
 	density = 0.2;
-	elasticity = 0.2;
+	elasticity = 0.5;
 	friction = 0.6;
 	emap = true;
 
     canDrop = true;
-    armReady = 1;
     uiName = "HE Grenade";
     image = HEGrenadeImage;
 
@@ -28,6 +27,7 @@ datablock ShapeBaseImageData(HEGrenadeImage)
 {
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/grenade.dts";
     item = HEGrenadeItem;
+    armReady = 1;
 };
 
 function HEGrenadeProps::onRemove(%this)
@@ -103,7 +103,7 @@ function Item::detonateHEGrenade(%this, %props)
 
 function HEGrenadeImage::onTrigger(%this, %obj, %slot, %trigger, %state)
 {
-    %props = %obj.getItemProps(%this, %slot);
+    %props = %obj.getItemProps();
 
     if (isEventPending(%props.schedule) || %trigger != 4)
         return;
