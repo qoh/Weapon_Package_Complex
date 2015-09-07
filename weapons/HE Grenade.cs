@@ -1,7 +1,21 @@
+datablock AudioProfile(PinOutSound)
+{
+    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/pinOut.wav";
+    description = AudioClose3D;
+    preload = true;
+};
+
 datablock ItemData(HEGrenadeItem)
 {
-    shapeFile = "base/data/shapes/printGun.dts";
+    shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/grenade.dts";
+	mass = 1;
+	density = 0.2;
+	elasticity = 0.2;
+	friction = 0.6;
+	emap = true;
+
     canDrop = true;
+    armReady = 1;
     uiName = "HE Grenade";
     image = HEGrenadeImage;
 
@@ -12,7 +26,7 @@ datablock ItemData(HEGrenadeItem)
 
 datablock ShapeBaseImageData(HEGrenadeImage)
 {
-    shapeFile = "base/data/shapes/printGun.dts";
+    shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/grenade.dts";
     item = HEGrenadeItem;
 };
 
@@ -95,7 +109,10 @@ function HEGrenadeImage::onTrigger(%this, %obj, %slot, %trigger, %state)
         return;
 
     if (%state)
+    {
         %props.pinOut = true;
+        serverPlay3D(PinOutSound, %obj.getMuzzlePoint(0));
+    }
     else if (%props.pinOut)
         %props.startSchedule(HEGrenadeItem.fuseTime);
 }

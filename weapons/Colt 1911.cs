@@ -1,7 +1,51 @@
+datablock AudioProfile(Colt1911FireSound)
+{
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m1911_fire.wav";
+	description = AudioClose3d;
+	preload = true;
+};
+
+datablock AudioProfile(Colt1911FireLastSound)
+{
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m1911_fireLast.wav";
+	description = AudioClose3d;
+	preload = true;
+};
+
+datablock AudioProfile(Colt1911SlidepullSound)
+{
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/pistol_slidepull.wav";
+	description = AudioClose3d;
+	preload = true;
+};
+
+datablock AudioProfile(Colt1911ClipInSound)
+{
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/pistol_clipin.wav";
+	description = AudioClose3d;
+	preload = true;
+};
+
+datablock AudioProfile(Colt1911ClipOutSound)
+{
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/pistol_clipout.wav";
+	description = AudioClose3d;
+	preload = true;
+};
+
 datablock ItemData(Colt1911Item)
 {
-    shapeFile = "base/data/shapes/printGun.dts";
+    shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/Colt_1911.dts";
+	iconName = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/icons/colt";
+	rotate = false;
+	mass = 1;
+	density = 0.2;
+	elasticity = 0.2;
+	friction = 0.6;
+	emap = true;
+
     canDrop = 1;
+    armReady = 1;
     uiName = "Colt 1911";
     image = Colt1911Image;
 
@@ -16,7 +60,7 @@ function Colt1911Props::onRemove(%this)
 
 datablock ShapeBaseImageData(Colt1911Image)
 {
-    shapeFile = "base/data/shapes/printGun.dts";
+    shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/Colt_1911.dts";
     item = Colt1911Item;
 
     stateName[0] = "Activate";
@@ -46,26 +90,20 @@ datablock ShapeBaseImageData(Colt1911Image)
     stateTransitionOnTriggerUp[5] = "CheckChamber";
 };
 
-function Player::debugColt(%this)
+function Colt1911Image::getDebugText(%this, %obj, %slot)
 {
-    cancel(%this.debugColt);
+    %props = %obj.getItemProps(%this, %slot);
 
-    if (%this.getMountedImage(0) != Colt1911Image.getID())
-        return;
-
-    %props = %this.getItemProps(Colt1911Image.getID(), 0);
-
-    %text = %props.loaded ? "loaded-chamber" : "empty-chamber";
+    %text = "\c6" @ %props.loaded ? "loaded" : "empty";
     %text = %text SPC (isObject(%props.magazine) ? "mag=" @ %props.magazine.count : "no-mag");
-    %text = %text SPC "state=" @ %this.getImageState(0);
+    %text = %text SPC "state=" @ %obj.getImageState(%slot);
 
-    clientCmdBottomPrint("\c6" @ %text, 1, 1);
-    %this.debugColt = %this.schedule(16, debugColt);
+    return %text;
 }
 
 function Colt1911Image::onMount(%this, %obj, %slot)
 {
-    %obj.debugColt();
+    %obj.debugWeapon();
 
     %props = %obj.getItemProps(%this, %slot);
 
@@ -82,6 +120,8 @@ function Colt1911Image::onLight(%this, %obj, %slot)
         // remove magazine
         %props.magazine.delete();
         %obj.setImageAmmo(%slot, 0);
+
+        serverPlay3D(Colt1911ClipOutSound, %obj.getMuzzlePoint(%slot));
     }
     else
     {
@@ -92,6 +132,7 @@ function Colt1911Image::onLight(%this, %obj, %slot)
         };
 
         %obj.setImageAmmo(%slot, 1);
+        serverPlay3D(Colt1911ClipInSound, %obj.getMuzzlePoint(%slot));
     }
 
     return 1;
@@ -103,10 +144,10 @@ function Colt1911Image::onTrigger(%this, %obj, %slot, %trigger, %state)
 
     if (%trigger == 4 && %state)
     {
-        talk("manual chamber");
-
         if (!%props.loaded && %props.magazine.count >= 1)
         {
+            serverPlay3D(Colt1911SlidepullSound, %obj.getMuzzlePoint(%slot));
+
             %props.loaded = true;
             %props.magazine.count--;
 
@@ -123,14 +164,17 @@ function Colt1911Image::onEmptyFire(%this, %obj, %slot)
 {
     // click
     talk("click");
+    serverPlay3D(RevolverClickSound, %obj.getMuzzlePoint(%slot));
 }
 
 function Colt1911Image::onFire(%this, %obj, %slot)
 {
     %props = %obj.getItemProps(%this, %slot);
+    talk("hey");
 
     if (!%props.loaded)
     {
+        talk("not loaded??");
         // shouldn't happen
         return;
     }
@@ -142,10 +186,12 @@ function Colt1911Image::onFire(%this, %obj, %slot)
     if (%props.magazine.count >= 1)
     {
         %props.magazine.count--;
+        serverPlay3D(Colt1911FireSound, %obj.getMuzzlePoint(%slot));
     }
     else
     {
         %props.loaded = false;
         %obj.setImageLoaded(%slot, 0);
+        serverPlay3D(Colt1911FireLastSound, %obj.getMuzzlePoint(%slot));
     }
 }
