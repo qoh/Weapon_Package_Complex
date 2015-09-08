@@ -115,9 +115,9 @@ datablock ShapeBaseImageData(Colt1911Image)
 	stateEmitterTime[5] = 0.05;
 	stateEmitterNode[5] = "muzzleNode";
 	stateTimeoutValue[5] = 0.1;
-	stateWaitForTimeout[5] = true;
+	stateWaitForTimeout[5] = false;
 	stateAllowImageChange[5] = false;
-	stateTransitionOnTriggerUp[5] = "Empty";
+	stateTransitionOnTriggerUp[5] = "Empty"; //Thanks to this the smoke state can be entirely bypassed.
 
 	stateName[6] = "Reload";
 	stateSound[6] = Colt1911SlidepullSound;
