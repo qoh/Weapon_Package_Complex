@@ -61,6 +61,12 @@ datablock AudioProfile(RevolverCloseSound)
 	description = AudioClose3d;
 	preload = true;
 };
+datablock AudioProfile(RevolverClickSound)
+{
+    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver_click.wav";
+    description = AudioClose3D;
+    preload = true;
+};
 
 datablock ItemData(RevolverItem)
 {
@@ -85,6 +91,11 @@ datablock ShapeBaseImageData(RevolverImage)
 
     item = RevolverItem;
     armReady = true;
+	isRevolver = true;
+
+	insertSound0 = AdvReloadInsert1Sound;
+	insertSound1 = AdvReloadInsert2Sound;
+	numInsertSound = 2;
 
     stateName[0] = "Activate";
     stateSequence[0] = "Activate";
@@ -99,6 +110,7 @@ datablock ShapeBaseImageData(RevolverImage)
     stateTransitionOnTriggerDown[2] = "EmptyFire";
 
     stateName[3] = "EmptyFire";
+	stateSound[3] = RevolverClickSound;
     stateScript[3] = "onEmptyFire";
     stateSequence[3] = "emptyFire";
     stateTimeoutValue[3] = 0.13;
@@ -114,6 +126,7 @@ datablock ShapeBaseImageData(RevolverImage)
 
     stateName[5] = "Fire";
     stateFire[5] = true;
+	stateSound[3] = RevolverFireSound;
     stateScript[5] = "onFire";
     stateSequence[5] = "fire";
     stateEmitter[5] = advBigBulletFireEmitter;
@@ -222,7 +235,8 @@ function RevolverImage::onTrigger(%this, %obj, %slot, %trigger, %state)
     {
         if (%props.slot[%props.currSlot] == 0)
         {
-            serverPlay3D("AdvReloadInsert" @ getRandom(1, 2) @ "Sound", %obj.getMuzzlePoint(%slot));
+			%sound = %this.insertSound[getRandom(%this.numInsertSound + 1)];
+            serverPlay3D(%sound, %obj.getMuzzlePoint(%slot));
             %props.slot[%props.currSlot] = 1;
             %obj.playThread(2, "plant");
         }
@@ -255,7 +269,6 @@ function RevolverImage::onEmptyFire(%this, %obj, %slot)
 
     %obj.playThread(2, "shiftLeft");
     %obj.playThread(3, "shiftRight");
-    serverPlay3D(RevolverClickSound, %obj.getMuzzlePoint(%slot));
 }
 
 function RevolverImage::onFire(%this, %obj, %slot)
@@ -269,7 +282,6 @@ function RevolverImage::onFire(%this, %obj, %slot)
 
     %obj.playThread(2, "shiftLeft");
     %obj.playThread(3, "shiftRight");
-    serverPlay3D(RevolverFireSound, %obj.getMuzzlePoint(%slot));
 }
 
 function RevolverImage::onEjectShell(%this, %obj, %slot)
@@ -325,7 +337,7 @@ package RevolverInputPackage
         if (!isObject(%player))
             return Parent::serverCmdShiftBrick(%client, %x, %y, %z);
 
-        if (%player.getMountedImage(0) != RevolverImage.getID())
+        if (!%player.getMountedImage(0).isRevolver)
             return Parent::serverCmdShiftBrick(%client, %x, %y, %z);
 
         %player.revolverInput(%x, %y, %z);
@@ -338,7 +350,7 @@ package RevolverInputPackage
         if (!isObject(%player))
             return Parent::serverCmdSuperShiftBrick(%client, %x, %y, %z);
 
-        if (%player.getMountedImage(0) != RevolverImage.getID())
+        if (!%player.getMountedImage(0).isRevolver)
             return Parent::serverCmdSuperShiftBrick(%client, %x, %y, %z);
 
         %player.revolverInput(%x, %y, %z);

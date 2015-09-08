@@ -14,6 +14,7 @@ exec("./magazines.cs");
 exec("./weapons/HE Grenade.cs");
 exec("./weapons/Colt 1911.cs");
 exec("./weapons/Revolver.cs");
+exec("./weapons/Colt Walker.cs");
 exec("./weapons/M24 Rifle.cs");
 
 function Player::debugWeapon(%this)

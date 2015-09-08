@@ -30,13 +30,6 @@ datablock AudioProfile(SniperReloadSound)
     preload = true;
 };
 
-datablock AudioProfile(RevolverClickSound)
-{
-    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver_click.wav";
-    description = AudioClose3D;
-    preload = true;
-};
-
 datablock ItemData(M24RifleItem)
 {
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/remmington700_sniper.dts";
