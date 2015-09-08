@@ -101,6 +101,12 @@ function Player::findMagazine(%this, %item)
     return %bestSlot;
 }
 
+function SimpleMagWeaponProps::onRemove(%this)
+{
+    if (isObject(%this.magazine))
+        %this.magazine.delete();
+}
+
 function MagazineProps::onAdd(%this)
 {
     %data = %this.sourceItemData;
@@ -157,20 +163,22 @@ datablock ItemData(MagazineItem_45ACP_x7)
 	emap = true;
 
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/items/colt_magazine.dts";
-    uiName = "Mag .45 ACP x12";
+    iconName = "./assets/icons/colt_clip";
+    uiName = "M 12x .45 ACP";
 
     magSize = 12;
     magWeapon = Colt1911Item;
     magType = "extended detachable box";
 
-    cartName = ".45 ACP";
+    cartName = "11.43x23mm .45 ACP";
     cartWeight = 15;
 };
 
 datablock ItemData(MagazineItem_M24A1 : MagazineItem_45ACP_x7)
 {
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/items/m1garand_clip.dts";
-    uiName = "Mag M24A1";
+    iconName = "./assets/icons/m1garand_clip";
+    uiName = "M M24A1";
 
     magSize = 5;
     magWeapon = M24RifleItem;
@@ -178,6 +186,20 @@ datablock ItemData(MagazineItem_M24A1 : MagazineItem_45ACP_x7)
 
     cartName = "7.62x51mm NATO";
     cartWeight = 10;
+};
+
+datablock ItemData(MagazineItem_45ACP_x20_SMG : MagazineItem_45ACP_x7)
+{
+    shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/items/thompson_clip.dts";
+    iconName = "./assets/icons/thompson_clip";
+    uiName = "M 20x .45 ACP";
+
+    magSize = 20;
+    magWeapon = ThompsonItem;
+    magType = "stick magazine";
+
+    cartName = "11.43x23mm .45 ACP";
+    cartWeight = 15;
 };
 
 package MagazineStatsPackage

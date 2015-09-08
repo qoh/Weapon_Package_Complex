@@ -1,42 +1,20 @@
-datablock AudioProfile(Colt1911FireSound)
+datablock AudioProfile(ThompsonFireSound)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m1911_fire.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/thompson/fire.wav";
+	description = AudioClose3d;
+	preload = true;
+};
+datablock AudioProfile(ThompsonFireLastSound)
+{
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/thompson/fire_last.wav";
 	description = AudioClose3d;
 	preload = true;
 };
 
-datablock AudioProfile(Colt1911FireLastSound)
+datablock ItemData(ThompsonItem)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m1911_fireLast.wav";
-	description = AudioClose3d;
-	preload = true;
-};
-
-datablock AudioProfile(Colt1911SlidepullSound)
-{
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/pistol_slidepull.wav";
-	description = AudioClose3d;
-	preload = true;
-};
-
-datablock AudioProfile(Colt1911ClipInSound)
-{
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/pistol_clipin.wav";
-	description = AudioClose3d;
-	preload = true;
-};
-
-datablock AudioProfile(Colt1911ClipOutSound)
-{
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/pistol_clipout.wav";
-	description = AudioClose3d;
-	preload = true;
-};
-
-datablock ItemData(Colt1911Item)
-{
-    shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/Colt_1911.dts";
-	iconName = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/icons/colt";
+    shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/thompson_mg.dts";
+	iconName = "Add-Ons/Weapon_Package_Complex/assets/icons/thompson";
 	rotate = false;
 	mass = 1;
 	density = 0.2;
@@ -45,27 +23,29 @@ datablock ItemData(Colt1911Item)
 	emap = true;
 
     canDrop = 1;
-    uiName = "Colt 1911";
-    image = Colt1911Image;
+    uiName = "Thompson SMG";
+    image = ThompsonImage;
 
-    itemPropsClass = "Colt1911Props";
+    itemPropsClass = "SimpleMagWeaponProps";
 };
 
-function Colt1911Props::onRemove(%this)
+function ThompsonItem::onAdd(%this, %obj)
 {
-    if (isObject(%this.magazine))
-        %this.magazine.delete();
+	Parent::onAdd(%this, %obj);
+
+	if (!isObject(%obj.itemProps.magazine))
+		%obj.hideNode("clip");
 }
 
-datablock ShapeBaseImageData(Colt1911Image)
+datablock ShapeBaseImageData(ThompsonImage)
 {
-    shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/Colt_1911.dts";
-    item = Colt1911Item;
+    shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/thompson_mg.dts";
+    item = ThompsonItem;
     armReady = 1;
 
     stateName[0] = "Activate";
 	stateSequence[0] = "activate";
-    stateTimeoutValue[0] = 0.15;
+    stateTimeoutValue[0] = 0.2;
     stateTransitionOnTimeout[0] = "CheckChamber";
 
     stateName[1] = "CheckChamber";
@@ -76,6 +56,7 @@ datablock ShapeBaseImageData(Colt1911Image)
 	stateSequence[2] = "noammo";
     stateTransitionOnLoaded[2] = "Ready";
     stateTransitionOnTriggerDown[2] = "EmptyFire";
+	stateTransitionOnAmmo[2] = "PullBackSlide";
 
     stateName[3] = "EmptyFire";
     stateScript[3] = "onEmptyFire";
@@ -87,30 +68,40 @@ datablock ShapeBaseImageData(Colt1911Image)
 
     stateName[4] = "Ready";
 	stateSequence[4] = "root";
+	stateTransitionOnAmmo[2] = "PullBackSlide";
     stateTransitionOnTriggerDown[4] = "Fire";
 
     stateName[5] = "Fire";
     stateFire[5] = true;
     stateScript[5] = "onFire";
 	stateSequence[5] = "Fire";
-    stateTimeoutValue[5] = 0.12;
-	stateEmitter[5] = advSmallBulletFireEmitter;
+    stateTimeoutValue[5] = 0.03;
+	stateEmitter[5] = advBigBulletFireEmitter;
 	stateEmitterTime[5] = 0.05;
 	stateEmitterNode[5] = "muzzleNode";
 	stateAllowImageChange[5] = false;
     stateTransitionOnTimeout[5] = "Smoke";
 
 	stateName[6] = "Smoke";
-	stateEmitter[6] = advSmallBulletSmokeEmitter;
+	stateEmitter[6] = advBigBulletSmokeEmitter;
 	stateEmitterTime[6] = 0.05;
 	stateEmitterNode[6] = "muzzleNode";
-	stateTimeoutValue[6] = 0.1;
-	stateWaitForTimeout[6] = true;
+	stateTimeoutValue[6] = 0.05;
 	stateAllowImageChange[6] = false;
-	stateTransitionOnTriggerUp[6] = "CheckChamber";
+	stateTransitionOnTimeout[6] = "CheckChamber";
+
+	stateName[7] = "PullBackSlide";
+	stateScript[7] = "onPullBackSlide";
+	stateSound[7] = ComplexBoltSound;
+	stateSequence[7] = "Fire";
+	stateTimeoutValue[7] = 0.2;
+	stateTransitionOnTimeout[7] = "CheckTrigger";
+
+	stateName[8] = "CheckTrigger";
+	stateTransitionOnTriggerUp[8] = "CheckChamber";
 };
 
-function Colt1911Image::getDebugText(%this, %obj, %slot)
+function ThompsonImage::getDebugText(%this, %obj, %slot)
 {
     %props = %obj.getItemProps();
 
@@ -121,7 +112,7 @@ function Colt1911Image::getDebugText(%this, %obj, %slot)
     return %text;
 }
 
-function Colt1911Image::onMount(%this, %obj, %slot)
+function ThompsonImage::onMount(%this, %obj, %slot)
 {
     %obj.debugWeapon();
 
@@ -129,7 +120,7 @@ function Colt1911Image::onMount(%this, %obj, %slot)
     %obj.setImageLoaded(%slot, %props.loaded);
 }
 
-function Colt1911Image::onLight(%this, %obj, %slot)
+function ThompsonImage::onLight(%this, %obj, %slot)
 {
     %props = %obj.getItemProps();
 
@@ -139,7 +130,7 @@ function Colt1911Image::onLight(%this, %obj, %slot)
 		%props.magazine = "";
 
 		%obj.playThread(2, "shiftRight");
-        serverPlay3D(Colt1911ClipOutSound, %obj.getMuzzlePoint(%slot));
+        serverPlay3D(ComplexClipOutSound, %obj.getMuzzlePoint(%slot));
     }
     else
     {
@@ -147,7 +138,7 @@ function Colt1911Image::onLight(%this, %obj, %slot)
 
         if (isObject(%props.magazine))
 		{
-            serverPlay3D(Colt1911ClipInSound, %obj.getMuzzlePoint(%slot));
+            serverPlay3D(ComplexClipInSound, %obj.getMuzzlePoint(%slot));
 			%obj.playThread(2, "shiftLeft");
 		}
         else if (isObject(%obj.client))
@@ -157,35 +148,57 @@ function Colt1911Image::onLight(%this, %obj, %slot)
     return 1;
 }
 
-function Colt1911Image::onTrigger(%this, %obj, %slot, %trigger, %state)
+function ThompsonImage::onTrigger(%this, %obj, %slot, %trigger, %state)
 {
     %props = %obj.getItemProps();
 
     if (%trigger == 4 && %state)
     {
-        if (!%props.loaded && %props.magazine.count >= 1)
-        {
-            serverPlay3D(Colt1911SlidepullSound, %obj.getMuzzlePoint(%slot));
-
-            %props.loaded = true;
-            %props.magazine.count--;
-
-            %obj.setImageLoaded(%slot, 1);
-			%obj.playThread(2, "plant");
-        }
-
+		%obj.setImageAmmo(%slot, true);
         return 1;
     }
 
     return 0;
 }
 
-function Colt1911Image::onEmptyFire(%this, %obj, %slot)
+function ThompsonImage::onPullBackSlide(%this, %obj, %slot)
 {
+	%props = %obj.getItemProps();
+
+	if (%props.loaded)
+	{
+		// eject shell
+		%props.loaded = false;
+	}
+
+	if (%props.magazine.count >= 1)
+	{
+		%props.magazine.count--;
+		%props.loaded = true;
+
+		%obj.playThread(2, "plant");
+	}
+
+	%obj.setImageAmmo(%slot, false);
+	%obj.setImageLoaded(%slot, %props.loaded);
+}
+
+function ThompsonImage::onEmptyFire(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+
+	if (%props.magazine.count >= 1)
+	{
+		%obj.setImageAmmo(%slot, true);
+		return;
+	}
+
+	%obj.playThread(2, "plant");
+
     serverPlay3D(RevolverClickSound, %obj.getMuzzlePoint(%slot));
 }
 
-function Colt1911Image::onFire(%this, %obj, %slot)
+function ThompsonImage::onFire(%this, %obj, %slot)
 {
 	if (%obj.getState() $= "Dead")
 		return;
@@ -196,8 +209,7 @@ function Colt1911Image::onFire(%this, %obj, %slot)
         // shouldn't happen
         return;
 
-	%obj.playThread(2, "shiftLeft");
-	%obj.playThread(3, "shiftRight");
+	%obj.playThread(2, "plant");
 
     // fire bullet
     %proj = new ScriptObject()
@@ -205,14 +217,14 @@ function Colt1911Image::onFire(%this, %obj, %slot)
 		class = "ProjectileRayCast";
 		superClass = "TimedRayCast";
 		position = %obj.getMuzzlePoint(0);
-		velocity = vectorScale(%obj.getMuzzleVector(%slot), cf_muzzlevelocity_ms(251));
+		velocity = vectorScale(%obj.getMuzzleVector(%slot), cf_muzzlevelocity_ms(285));
 		gravity = "0 0" SPC cf_bulletdrop_grams(15);
 		lifetime = 3;
 		mask = $TypeMasks::PlayerObjectType | $TypeMasks::FxBrickObjectType | $TypeMasks::TerrainObjectType;
 		exempt = %obj;
 		sourceObject = %obj;
 		sourceClient = %obj.client;
-		damage = 16;
+		damage = 6;
 		damageType = $DamageType::Generic;
 		hitExplosion = GunProjectile;
     };
@@ -220,16 +232,15 @@ function Colt1911Image::onFire(%this, %obj, %slot)
     MissionCleanup.add(%proj);
     %proj.fire();
 
-    // since this is a semi-auto weapon, automatically chamber the next shell
     if (%props.magazine.count >= 1)
     {
         %props.magazine.count--;
-        serverPlay3D(Colt1911FireSound, %obj.getMuzzlePoint(%slot));
+        serverPlay3D(ThompsonFireSound, %obj.getMuzzlePoint(%slot));
     }
     else
     {
         %props.loaded = false;
-        %obj.setImageLoaded(%slot, 0);
-        serverPlay3D(Colt1911FireLastSound, %obj.getMuzzlePoint(%slot));
+        %obj.setImageLoaded(%slot, false);
+        serverPlay3D(ThompsonFireLastSound, %obj.getMuzzlePoint(%slot));
     }
 }
