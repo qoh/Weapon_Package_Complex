@@ -1,8 +1,8 @@
-function Player::removeTool(%this, %index)
+function Player::removeTool(%this, %index, %ignoreProps)
 {
     %this.tool[%index] = 0;
 
-    if (isObject(%this.itemProps[%index]))
+    if (!%ignoreProps && isObject(%this.itemProps[%index]))
         %this.itemProps[%index].delete();
 
     if (isObject(%this.client))
