@@ -48,14 +48,8 @@ datablock ItemData(Colt1911Item)
     uiName = "Colt 1911";
     image = Colt1911Image;
 
-    itemPropsClass = "Colt1911Props";
+    itemPropsClass = "SimpleMagWeaponProps";
 };
-
-function Colt1911Props::onRemove(%this)
-{
-    if (isObject(%this.magazine))
-        %this.magazine.delete();
-}
 
 datablock ShapeBaseImageData(Colt1911Image)
 {
@@ -66,122 +60,99 @@ datablock ShapeBaseImageData(Colt1911Image)
     stateName[0] = "Activate";
 	stateSequence[0] = "activate";
     stateTimeoutValue[0] = 0.15;
-    stateTransitionOnTimeout[0] = "CheckChamber";
+    stateTransitionOnTimeout[0] = "Empty";
 
-    stateName[1] = "CheckChamber";
+    stateName[1] = "Empty";
+	stateSequence[1] = "noammo";
+	stateTransitionOnTriggerDown[1] = "EmptyFire";
+	stateTransitionOnAmmo[1] = "Reload";
     stateTransitionOnLoaded[1] = "Ready";
-    stateTransitionOnNotLoaded[1] = "Empty";
 
-    stateName[2] = "Empty";
-	stateSequence[2] = "noammo";
-    stateTransitionOnLoaded[2] = "Ready";
-    stateTransitionOnTriggerDown[2] = "EmptyFire";
+    stateName[2] = "EmptyFire";
+    stateScript[2] = "onEmptyFire";
+	stateSequence[2] = "emptyFire";
+	stateTimeoutValue[2] = 0.13;
+	stateWaitForTimeout[2] = true;
+	stateAllowImageChange[2] = false;
+    stateTransitionOnTriggerUp[2] = "Empty";
 
-    stateName[3] = "EmptyFire";
-    stateScript[3] = "onEmptyFire";
-	stateSequence[3] = "emptyFire";
-	stateTimeoutValue[3] = 0.13;
-	stateWaitForTimeout[3] = true;
-	stateAllowImageChange[3] = false;
-    stateTransitionOnTriggerUp[3] = "Empty";
+    stateName[3] = "Ready";
+	stateSequence[3] = "root";
+    stateTransitionOnTriggerDown[3] = "Fire";
+	stateTransitionOnAmmo[3] = "Reload";
+	stateTransitionOnNotLoaded[3] = "Empty";
 
-    stateName[4] = "Ready";
-	stateSequence[4] = "root";
-    stateTransitionOnTriggerDown[4] = "Fire";
+    stateName[4] = "Fire";
+    stateFire[4] = true;
+    stateScript[4] = "onFire";
+	stateSequence[4] = "Fire";
+    stateTimeoutValue[4] = 0.12;
+	stateEmitter[4] = advSmallBulletFireEmitter;
+	stateEmitterTime[4] = 0.05;
+	stateEmitterNode[4] = "muzzleNode";
+	stateAllowImageChange[4] = false;
+    stateTransitionOnTimeout[4] = "Smoke";
 
-    stateName[5] = "Fire";
-    stateFire[5] = true;
-    stateScript[5] = "onFire";
-	stateSequence[5] = "Fire";
-    stateTimeoutValue[5] = 0.12;
-	stateEmitter[5] = advSmallBulletFireEmitter;
+	stateName[5] = "Smoke";
+	stateEmitter[5] = advSmallBulletSmokeEmitter;
 	stateEmitterTime[5] = 0.05;
 	stateEmitterNode[5] = "muzzleNode";
+	stateTimeoutValue[5] = 0.1;
+	stateWaitForTimeout[5] = true;
 	stateAllowImageChange[5] = false;
-    stateTransitionOnTimeout[5] = "Smoke";
+	stateTransitionOnTriggerUp[5] = "Empty";
 
-	stateName[6] = "Smoke";
-	stateEmitter[6] = advSmallBulletSmokeEmitter;
-	stateEmitterTime[6] = 0.05;
-	stateEmitterNode[6] = "muzzleNode";
-	stateTimeoutValue[6] = 0.1;
-	stateWaitForTimeout[6] = true;
+	stateName[6] = "Reload";
+	stateSound[6] = Colt1911SlidepullSound;
+	stateSequence[6] = "ejectShell";
+	stateScript[6] = "onReload";
+	stateTimeoutValue[6] = 0.2;
 	stateAllowImageChange[6] = false;
-	stateTransitionOnTriggerUp[6] = "CheckChamber";
+	stateWaitForTimeout[6] = true;
+	stateTransitionOnNoAmmo[6] = "Empty";
 };
-
-function Colt1911Image::getDebugText(%this, %obj, %slot)
-{
-    %props = %obj.getItemProps();
-
-    %text = "\c6" @ (%props.loaded ? "loaded" : "empty");
-    %text = %text SPC (isObject(%props.magazine) ? "mag=" @ %props.magazine.count : "no-mag");
-    %text = %text SPC "state=" @ %obj.getImageState(%slot);
-
-    return %text;
-}
 
 function Colt1911Image::onMount(%this, %obj, %slot)
 {
-    %obj.debugWeapon();
-
     %props = %obj.getItemProps();
     %obj.setImageLoaded(%slot, %props.loaded);
 }
 
-function Colt1911Image::onLight(%this, %obj, %slot)
+function Colt1911Image::onReload(%this, %obj, %slot)
 {
-    %props = %obj.getItemProps();
+	%props = %obj.getItemProps();
 
-    if (isObject(%props.magazine))
+    if (%props.loaded)
     {
-		%obj.giveMagazineProps(%props.magazine);
-		%props.magazine = "";
-
-		%obj.playThread(2, "shiftRight");
-        serverPlay3D(Colt1911ClipOutSound, %obj.getMuzzlePoint(%slot));
-    }
-    else
-    {
-        %props.magazine = %obj.takeMagazineProps(%this.item);
-
-        if (isObject(%props.magazine))
-		{
-            serverPlay3D(Colt1911ClipInSound, %obj.getMuzzlePoint(%slot));
-			%obj.playThread(2, "shiftLeft");
-		}
-        else if (isObject(%obj.client))
-            messageClient(%obj.client, '', '\c6You don\'t have any magazines for this weapon.');
+        %props.loaded = false;
+        // eject shell
     }
 
-    return 1;
-}
-
-function Colt1911Image::onTrigger(%this, %obj, %slot, %trigger, %state)
-{
-    %props = %obj.getItemProps();
-
-    if (%trigger == 4 && %state)
+    if (%props.magazine.count >= 1)
     {
-        if (!%props.loaded && %props.magazine.count >= 1)
-        {
-            serverPlay3D(Colt1911SlidepullSound, %obj.getMuzzlePoint(%slot));
+        %props.magazine.count--;
+        %props.loaded = true;
 
-            %props.loaded = true;
-            %props.magazine.count--;
-
-            %obj.setImageLoaded(%slot, 1);
-			%obj.playThread(2, "plant");
-        }
-
-        return 1;
+        %obj.playThread(2, "plant");
     }
 
-    return 0;
+    %obj.setImageLoaded(%slot, %props.loaded);
+    %obj.setImageAmmo(%slot, false);
 }
 
 function Colt1911Image::onEmptyFire(%this, %obj, %slot)
 {
+	%props = %obj.getItemProps();
+
+	if (%props.magazine.count >= 1)
+	{
+		%obj.setImageAmmo(%slot, true);
+		return;
+	}
+
+	%obj.playThread(2, "shiftLeft");
+	%obj.playThread(3, "shiftRight");
+
     serverPlay3D(RevolverClickSound, %obj.getMuzzlePoint(%slot));
 }
 
@@ -233,3 +204,55 @@ function Colt1911Image::onFire(%this, %obj, %slot)
         serverPlay3D(Colt1911FireLastSound, %obj.getMuzzlePoint(%slot));
     }
 }
+
+function Colt1911Image::onLight(%this, %obj, %slot)
+{
+    %props = %obj.getItemProps();
+
+    if (isObject(%props.magazine))
+    {
+		%obj.giveMagazineProps(%props.magazine);
+		%props.magazine = "";
+
+		%obj.playThread(2, "shiftRight");
+        serverPlay3D(Colt1911ClipOutSound, %obj.getMuzzlePoint(%slot));
+    }
+    else
+    {
+        %props.magazine = %obj.takeMagazineProps(%this.item);
+
+        if (isObject(%props.magazine))
+		{
+            serverPlay3D(Colt1911ClipInSound, %obj.getMuzzlePoint(%slot));
+			%obj.playThread(2, "shiftLeft");
+		}
+        else if (isObject(%obj.client))
+            messageClient(%obj.client, '', '\c6You don\'t have any magazines for this weapon.');
+    }
+
+    return 1;
+}
+
+function Colt1911Image::onTrigger(%this, %obj, %slot, %trigger, %state)
+{
+    %props = %obj.getItemProps();
+
+    if (%trigger == 4 && %state && %obj.getImageState(%slot) !$= "Reload")
+    {
+		%obj.setImageAmmo(%slot, true);
+        return 1;
+    }
+
+    return 0;
+}
+
+// function Colt1911Image::getDebugText(%this, %obj, %slot)
+// {
+//     %props = %obj.getItemProps();
+//
+//     %text = "\c6" @ (%props.loaded ? "loaded" : "empty");
+//     %text = %text SPC (isObject(%props.magazine) ? "mag=" @ %props.magazine.count : "no-mag");
+//     %text = %text SPC "state=" @ %obj.getImageState(%slot);
+//
+//     return %text;
+// }

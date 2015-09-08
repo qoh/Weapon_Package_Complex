@@ -36,7 +36,7 @@ function TimedRayCast::onMiss(%this)
 
 function TimedRayCast::onStart(%this)
 {
-    %this.pathTracer = createShape(CylinderGlowShapeData, "1 1 1 0.9");
+    // %this.pathTracer = createShape(CylinderGlowShapeData, "1 1 1 0.9");
 }
 
 function TimedRayCast::onEnd(%this)

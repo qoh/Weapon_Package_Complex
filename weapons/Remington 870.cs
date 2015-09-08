@@ -141,6 +141,29 @@ function Remington870Image::onFire(%this, %obj, %slot)
 {
     %props = %obj.getItemProps();
 
+    for (%i = 0; %i < 8; %i++)
+    {
+        // %proj = new ScriptObject()
+    	// {
+    	// 	class = "ProjectileRayCast";
+    	// 	superClass = "TimedRayCast";
+    	// 	position = %obj.getMuzzlePoint(0);
+    	// 	velocity = vectorScale(%obj.getMuzzleVector(%slot), cf_muzzlevelocity_ms(251));
+    	// 	gravity = "0 0" SPC cf_bulletdrop_grams(15);
+    	// 	lifetime = 3;
+    	// 	mask = $TypeMasks::PlayerObjectType | $TypeMasks::FxBrickObjectType | $TypeMasks::TerrainObjectType;
+    	// 	exempt = %obj;
+    	// 	sourceObject = %obj;
+    	// 	sourceClient = %obj.client;
+    	// 	damage = 16;
+    	// 	damageType = $DamageType::Generic;
+    	// 	hitExplosion = GunProjectile;
+        // };
+        //
+        // MissionCleanup.add(%proj);
+        // %proj.fire();
+    }
+
     %obj.playThread(2, "shiftLeft");
     %obj.playThread(3, "shiftRight");
 

@@ -68,7 +68,7 @@ datablock ShapeBaseImageData(ThompsonImage)
 
     stateName[4] = "Ready";
 	stateSequence[4] = "root";
-	stateTransitionOnAmmo[2] = "PullBackSlide";
+	stateTransitionOnAmmo[4] = "PullBackSlide";
     stateTransitionOnTriggerDown[4] = "Fire";
 
     stateName[5] = "Fire";
@@ -101,64 +101,12 @@ datablock ShapeBaseImageData(ThompsonImage)
 	stateTransitionOnTriggerUp[8] = "CheckChamber";
 };
 
-function ThompsonImage::getDebugText(%this, %obj, %slot)
-{
-    %props = %obj.getItemProps();
-
-    %text = "\c6" @ (%props.loaded ? "loaded" : "empty");
-    %text = %text SPC (isObject(%props.magazine) ? "mag=" @ %props.magazine.count : "no-mag");
-    %text = %text SPC "state=" @ %obj.getImageState(%slot);
-
-    return %text;
-}
-
 function ThompsonImage::onMount(%this, %obj, %slot)
 {
     %obj.debugWeapon();
 
     %props = %obj.getItemProps();
     %obj.setImageLoaded(%slot, %props.loaded);
-}
-
-function ThompsonImage::onLight(%this, %obj, %slot)
-{
-    %props = %obj.getItemProps();
-
-    if (isObject(%props.magazine))
-    {
-		%obj.giveMagazineProps(%props.magazine);
-		%props.magazine = "";
-
-		%obj.playThread(2, "shiftRight");
-        serverPlay3D(ComplexClipOutSound, %obj.getMuzzlePoint(%slot));
-    }
-    else
-    {
-        %props.magazine = %obj.takeMagazineProps(%this.item);
-
-        if (isObject(%props.magazine))
-		{
-            serverPlay3D(ComplexClipInSound, %obj.getMuzzlePoint(%slot));
-			%obj.playThread(2, "shiftLeft");
-		}
-        else if (isObject(%obj.client))
-            messageClient(%obj.client, '', '\c6You don\'t have any magazines for this weapon.');
-    }
-
-    return 1;
-}
-
-function ThompsonImage::onTrigger(%this, %obj, %slot, %trigger, %state)
-{
-    %props = %obj.getItemProps();
-
-    if (%trigger == 4 && %state)
-    {
-		%obj.setImageAmmo(%slot, true);
-        return 1;
-    }
-
-    return 0;
 }
 
 function ThompsonImage::onPullBackSlide(%this, %obj, %slot)
@@ -244,3 +192,55 @@ function ThompsonImage::onFire(%this, %obj, %slot)
         serverPlay3D(ThompsonFireLastSound, %obj.getMuzzlePoint(%slot));
     }
 }
+
+function ThompsonImage::onLight(%this, %obj, %slot)
+{
+    %props = %obj.getItemProps();
+
+    if (isObject(%props.magazine))
+    {
+		%obj.giveMagazineProps(%props.magazine);
+		%props.magazine = "";
+
+		%obj.playThread(2, "shiftRight");
+        serverPlay3D(ComplexClipOutSound, %obj.getMuzzlePoint(%slot));
+    }
+    else
+    {
+        %props.magazine = %obj.takeMagazineProps(%this.item);
+
+        if (isObject(%props.magazine))
+		{
+            serverPlay3D(ComplexClipInSound, %obj.getMuzzlePoint(%slot));
+			%obj.playThread(2, "shiftLeft");
+		}
+        else if (isObject(%obj.client))
+            messageClient(%obj.client, '', '\c6You don\'t have any magazines for this weapon.');
+    }
+
+    return 1;
+}
+
+function ThompsonImage::onTrigger(%this, %obj, %slot, %trigger, %state)
+{
+    %props = %obj.getItemProps();
+
+    if (%trigger == 4 && %state && %obj.getImageState(%slot) !$= "Reload")
+    {
+		%obj.setImageAmmo(%slot, true);
+        return 1;
+    }
+
+    return 0;
+}
+
+// function ThompsonImage::getDebugText(%this, %obj, %slot)
+// {
+//     %props = %obj.getItemProps();
+//
+//     %text = "\c6" @ (%props.loaded ? "loaded" : "empty");
+//     %text = %text SPC (isObject(%props.magazine) ? "mag=" @ %props.magazine.count : "no-mag");
+//     %text = %text SPC "state=" @ %obj.getImageState(%slot);
+//
+//     return %text;
+// }

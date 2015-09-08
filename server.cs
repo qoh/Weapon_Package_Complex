@@ -37,6 +37,7 @@ exec("./weapons/Colt 1911.cs");
 exec("./weapons/Thompson.cs");
 exec("./weapons/Revolver.cs");
 exec("./weapons/Colt Walker.cs");
+exec("./weapons/M1 Garand.cs");
 exec("./weapons/M24 Rifle.cs");
 exec("./weapons/Remington 870.cs");
 
@@ -48,12 +49,10 @@ function Player::debugWeapon(%this)
     {
         %image = %this.getMountedImage(0);
 
-        if (isObject(%image))
+        if (isObject(%image) && isFunction(%image.getName(), "getDebugText"))
         {
             %text = "\c6" @ %image.getName() @ " in " @ %this.getImageState(0) @ "\n";
-
-            if (isFunction(%image.getName(), "getDebugText"))
-                %text = %text @ %image.getDebugText(%this, 0);
+            %text = %text @ %image.getDebugText(%this, 0);
 
             %this.client.bottomPrint(%text, 0.3, 1);
         }

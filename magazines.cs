@@ -130,7 +130,7 @@ function Player::displayMagazineStats(%this)
     if (%this.getMountedImage(0) == MagazineImage.getID() && isObject(%this.client))
     {
         %props = %this.getItemProps();
-        %text = "<just:center><font:palatino linotype:30>\c3" @ %props.capacity @ "-round<font:palatino linotype:24>\c6 " @ %props.type @ " magazine\n";
+        %text = "<just:center><font:palatino linotype:30>\c3" @ %props.capacity @ "-round<font:palatino linotype:24>\c6 " @ %props.type @ "\n";
         %text = %text @ "\c6Contains <font:palatino linotype:30>\c3" @ %props.count @ "x <font:palatino linotype:24>\c6" @ %props.name @ " (" @ %props.weight @ "g)\n";
         %text = %text @ "\c6Used with <font:palatino linotype:30>\c3" @ %props.weapon.uiName @ "\n";
         commandToClient(%this.client, 'CenterPrint', %text, 0);
@@ -168,9 +168,9 @@ datablock ItemData(MagazineItem_45ACP_x7)
 
     magSize = 12;
     magWeapon = Colt1911Item;
-    magType = "extended detachable box";
+    magType = "extended detachable box magazine";
 
-    cartName = "11.43x23mm .45 ACP";
+    cartName = ".45 ACP (11.43x23mm)";
     cartWeight = 15;
 };
 
@@ -182,7 +182,7 @@ datablock ItemData(MagazineItem_M24A1 : MagazineItem_45ACP_x7)
 
     magSize = 5;
     magWeapon = M24RifleItem;
-    magType = "internal";
+    magType = "internal magazine";
 
     cartName = "7.62x51mm NATO";
     cartWeight = 10;
@@ -198,8 +198,22 @@ datablock ItemData(MagazineItem_45ACP_x20_SMG : MagazineItem_45ACP_x7)
     magWeapon = ThompsonItem;
     magType = "stick magazine";
 
-    cartName = "11.43x23mm .45 ACP";
+    cartName = ".45 ACP (11.43x23mm)";
     cartWeight = 15;
+};
+
+datablock ItemData(MagazineItem_3006_x8 : MagazineItem_45ACP_x7)
+{
+    shapeFile = "./assets/shapes/items/m1garand_clip.dts";
+    iconName = "./assets/icons/m1garand_clip";
+    uiName = "M 8x .30-06";
+
+    magSize = 8;
+    magWeapon = M1GarandItem;
+    magType = "en-bloc clip";
+
+    cartName = ".30-06 Springfield (7.62x63mm)";
+    cartWeight = 12;
 };
 
 package MagazineStatsPackage

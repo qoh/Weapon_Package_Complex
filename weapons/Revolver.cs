@@ -276,6 +276,26 @@ function RevolverImage::onFire(%this, %obj, %slot)
     if (%obj.getState() $= "Dead")
         return;
 
+	// %proj = new ScriptObject()
+	// {
+	// 	class = "ProjectileRayCast";
+	// 	superClass = "TimedRayCast";
+	// 	position = %obj.getMuzzlePoint(0);
+	// 	velocity = vectorScale(%obj.getMuzzleVector(%slot), cf_muzzlevelocity_ms(251));
+	// 	gravity = "0 0" SPC cf_bulletdrop_grams(15);
+	// 	lifetime = 3;
+	// 	mask = $TypeMasks::PlayerObjectType | $TypeMasks::FxBrickObjectType | $TypeMasks::TerrainObjectType;
+	// 	exempt = %obj;
+	// 	sourceObject = %obj;
+	// 	sourceClient = %obj.client;
+	// 	damage = 16;
+	// 	damageType = $DamageType::Generic;
+	// 	hitExplosion = GunProjectile;
+    // };
+	//
+    // MissionCleanup.add(%proj);
+    // %proj.fire();
+
     %props = %obj.getItemProps();
     %props.slot[%props.currSlot] = 2;
     %props.currSlot = (%props.currSlot + 1) % 6;
