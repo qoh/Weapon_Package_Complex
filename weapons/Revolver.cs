@@ -288,17 +288,20 @@ function Player::revolverInput(%this, %x, %y, %z)
     if (%x == 0 && %y == -1 && %z == 0)
     {
         %props.currSlot = (%props.currSlot + 1) % 6;
-        %this.setImageLoaded(0, %props.slot[%props.currSlot] == 1);
         %playSound = true;
         %playThread = "rotCW";
     }
     else if (%x == 0 && %y == 1 && %z == 0)
     {
         %props.currSlot = (6 + (%props.currSlot - 1)) % 6;
-        %this.setImageLoaded(0, %props.slot[%props.currSlot] == 1);
         %playSound = true;
         %playThread = "rotCCW";
     }
+
+    %state = %this.getImageState(0);
+
+    if (%state $= "Ready" || %state $= "Empty")
+        %this.setImageLoaded(0, %props.slot[%props.currSlot] == 1);
 
     if (%playSound && $Sim::Time - %this.lastRevolverSpinSound > 0.07)
     {
