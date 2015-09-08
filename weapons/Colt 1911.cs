@@ -73,6 +73,10 @@ datablock ShapeBaseImageData(Colt1911Image)
 	fireVelInheritFactor = 0.25;
 	fireGravity = cf_bulletdrop_grams(15);
 	fireHitExplosion = GunProjectile;
+	fireHitPlayerSFX = ComplexFleshImpactBulletSFX;
+	fireHitSFX = ComplexDefaultImpactBulletSFX;
+	fireRicSFX = ComplexRicSFX;
+	fireNearMissSFX = ComplexNearMissSFX;
 
     stateName[0] = "Activate";
 	stateSequence[0] = "activate";
@@ -245,6 +249,8 @@ function Colt1911Image::damage(%this, %obj, %col, %position, %normal)
 {
 	if (%col.getRegion(%position, true) $= "head")
 	{
+		ComplexHeadshotSFX.playFrom(%position, %col);
+		
 		%damage = 32;
 		%damageType = $DamageType::Colt1911Headshot;
 	}

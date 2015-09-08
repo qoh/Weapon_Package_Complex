@@ -55,6 +55,11 @@ function TimeSliceRayWeapon::onFire(%this, %obj, %slot)
     		sourceClient = %obj.client;
             damageRef = %this;
     		hitExplosion = %this.fireHitExplosion;
+            hitPlayerSFX = %this.fireHitPlayerSFX;
+            hitSFX = %this.fireHitSFX;
+            ricSFX = %this.fireRicSFX;
+            ricChance = %this.fireRicChance $= "" ? 0.2 : %this.fireRicChance;
+            nearMissSFX = %this.fireNearMissSFX;
         };
 
         MissionCleanup.add(%proj);

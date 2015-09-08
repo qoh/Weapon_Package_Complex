@@ -1,3 +1,4 @@
+exec("./support/sfx.cs");
 exec("./support/imagetrigger.cs");
 exec("./support/itemprops.cs");
 exec("./support/itemfuncs.cs");
@@ -12,6 +13,7 @@ exec("./adventure_Effects.cs");
 exec("./calculations.cs");
 exec("./magazines.cs");
 exec("./bullets.cs");
+exec("./sounds.cs");
 
 // temporary
 datablock PlayerData(DeathmatchPlayer : PlayerStandardArmor)
@@ -29,27 +31,6 @@ datablock PlayerData(DeathmatchPlayer : PlayerStandardArmor)
 	maxForwardCrouchSpeed = 3;
 	maxSideCrouchSpeed = 3;
 	maxBackwardCrouchSpeed = 2;
-};
-
-datablock AudioProfile(ComplexBoltSound)
-{
-	fileName = "./assets/sounds/bolt.wav";
-	description = AudioClose3d;
-	preload = true;
-};
-
-datablock AudioProfile(ComplexClipInSound)
-{
-	fileName = "./assets/sounds/clipin.wav";
-	description = AudioClose3d;
-	preload = true;
-};
-
-datablock AudioProfile(ComplexClipOutSound)
-{
-	fileName = "./assets/sounds/clipout.wav";
-	description = AudioClose3d;
-	preload = true;
 };
 
 exec("./weapons/HE Grenade.cs");

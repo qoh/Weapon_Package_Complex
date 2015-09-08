@@ -33,14 +33,14 @@ function Player::ejectShell(%this, %data, %distance, %spent)
     if (%spent)
     {
         %item.hideNode("bullet");
-        %item.setShapeName("Spent");
-        %item.setShapeNameColor("1 0 0 1");
+        // %item.setShapeName("Spent");
+        // %item.setShapeNameColor("1 0 0 1");
     }
-    else
-    {
-        %item.setShapeName("Unspent");
-        %item.setShapeNameColor("0 1 0 1");
-    }
+    // else
+    // {
+    //     %item.setShapeName("Unspent");
+    //     %item.setShapeNameColor("0 1 0 1");
+    // }
 
     %muzzleVector = %this.getMuzzleVector(0);
 	%cross = vectorCross(%muzzleVector, "0 0 1");

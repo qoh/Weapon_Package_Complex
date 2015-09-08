@@ -75,18 +75,6 @@ function TimedRayCast::step(%this, %i, %prevTime)
 
     %this.position = %b;
     %this.velocity = vectorAdd(%this.velocity, vectorScale(%this.gravity, %dt));
-    // %this.velocity = vectorAdd(%this.velocity, vectorScale(mSin($Sim::Time * 16) SPC 0 SPC mCos($Sim::Time * 16), 4000 * %dt));
-
-    // initContainerRadiusSearch(%this.position, 64, $TypeMasks::PlayerObjectType);
-    //
-    // while (isObject(%find = containerSearchNext()))
-    // {
-    //     if (%find == %this.exempt)
-    //         continue;
-    //
-    //     %this.velocity = vectorAdd(%this.velocity, vectorSub(%find.getHackPosition(), %this.position));
-    //     break;
-    // }
 
     if (isObject(LagComp) && isObject(%this.sourceClient))
         %entered = LagComp.enterClient(%this.sourceClient);
@@ -94,6 +82,32 @@ function TimedRayCast::step(%this, %i, %prevTime)
     %result = containerRayCast(%a, %b, %this.mask,
         %this.exempt, %this.exempt2, %this.exempt3,
         %this.exempt4, %this.exempt5, %this.exempt6);
+
+    // This REALLY shouldn't be here
+    if (isObject(%this.nearMissSFX))
+    {
+        %center = vectorScale(vectorAdd(%a, %b), 0.5);
+        %length = vectorLen(%center);
+
+        initContainerRadiusSearch(%center, getMax(%length, 3), $TypeMasks::PlayerObjectType);
+
+        while (isObject(%obj = containerSearchNext()))
+        {
+            if (%obj == %this.exempt || %obj == firstWord(%result) || !isObject(%obj.client))
+                continue;
+
+            // VERY TODO: project %obj.position onto the line a -> b
+            // get the distance to this line
+            // use that instead.
+            %distance = vectorDist(%obj.getEyePoint(), %center);
+
+            if (%distance <= 5 && !%this.playedNearMissTo[%obj])
+            {
+                %this.playedNearMissTo[%obj] = true;
+                ComplexNearMissSFX.playTo(%obj.client, %center);
+            }
+        }
+    }
 
     if (%entered)
         LagComp.exit(%entered);
@@ -122,6 +136,8 @@ function TimedRayCast::step(%this, %i, %prevTime)
 
 function ProjectileRayCast::onCollision(%this, %col, %position, %normal)
 {
+    %isPlayer = %col.getType() & $TypeMasks::PlayerObjectType;
+
     if (isObject(%this.hitExplosion))
     {
         %projectile = new Projectile()
@@ -138,6 +154,14 @@ function ProjectileRayCast::onCollision(%this, %col, %position, %normal)
     if (isObject(%this.hitSound))
         serverPlay3D(%this.hitSound, %position);
 
+    if (isObject(%this.hitPlayerSFX) && %isPlayer)
+        %this.hitPlayerSFX.playFrom(%position, %col);
+    else if (isObject(%this.hitSFX))
+        %this.hitSFX.playFrom(%position, %col);
+
+    if (isObject(%this.ricSFX) && !%isPlayer && getRandom() < %this.ricChance)
+        %this.ricSFX.playFrom(%position, %col);
+
     if (isObject(%this.hitDecal))
         %doNothing = 1;
         // spawnDecal(...);
@@ -152,6 +176,9 @@ function ProjectileRayCast::onCollision(%this, %col, %position, %normal)
                 %col.damage(%this.sourceObject, %position, %this.damage, %this.damageType);
         }
     }
+
+    if (isObject(%this.damageRef) && isFunction(%this.damageRef.getName(), "onCollision"))
+        return %this.damageRef.onCollision(%this, %col, %position, %normal);
 
     return false;
 }

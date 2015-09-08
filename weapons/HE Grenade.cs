@@ -12,6 +12,195 @@ datablock AudioProfile(GrenadeLeverOffSound)
 	preload = true;
 };
 
+datablock AudioProfile(HEGrenadeBounceSound)
+{
+    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/hegrenade/he_bounce-1.mono.wav";
+    description = AudioClose3D;
+    preload = true;
+};
+
+datablock AudioProfile(HEGrenadeBeepSound)
+{
+    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/hegrenade/beep.wav";
+    description = AudioClose3D;
+    preload = true;
+};
+
+datablock AudioProfile(HEGrenadeDrawSound)
+{
+    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/hegrenade/he_draw.wav";
+    description = AudioClose3D;
+    preload = true;
+};
+
+datablock AudioProfile(HEGrenadeThrowSound)
+{
+    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/hegrenade/grenade_throw.wav";
+    description = AudioClose3D;
+    preload = true;
+};
+
+new ScriptObject(HEGrenadeExplodeSFX)
+{
+    class = "SFXEffect";
+
+    file["close", 1] = "Add-Ons/Weapon_Package_Complex/assets/sounds/hegrenade/explode3.mono.wav";
+    file["close", 2] = "Add-Ons/Weapon_Package_Complex/assets/sounds/hegrenade/explode4.mono.wav";
+    file["close", 3] = "Add-Ons/Weapon_Package_Complex/assets/sounds/hegrenade/explode5.mono.wav";
+    filterDistanceMax["close"] = 64;
+    use2D["close"] = "source";
+
+    file["distant", 1] = "Add-Ons/Weapon_Package_Complex/assets/sounds/hegrenade/explode3_distant.wav";
+    file["distant", 2] = "Add-Ons/Weapon_Package_Complex/assets/sounds/hegrenade/explode4_distant.wav";
+    file["distant", 3] = "Add-Ons/Weapon_Package_Complex/assets/sounds/hegrenade/explode5_distant.wav";
+    filterDistanceMin["distant"] = 64;
+    use2D["distant"] = "always";
+};
+
+datablock ParticleData(HEGrenadeBlastParticle)
+{
+	dragCoefficient		= 1.0;
+	windCoefficient		= 0.0;
+	gravityCoefficient	= -0.2;
+	inheritedVelFactor	= 0.1;
+	constantAcceleration	= 0.0;
+	lifetimeMS		= 4000;
+	lifetimeVarianceMS	= 3990;
+	spinSpeed		= 10.0;
+	spinRandomMin		= -50.0;
+	spinRandomMax		= 50.0;
+	useInvAlpha		= true;
+	animateTexture		= false;
+	//framesPerSec		= 1;
+
+	textureName		= "base/data/particles/cloud";
+	//animTexName		= "~/data/particles/cloud";
+
+	// Interpolation variables
+	colors[0]	= "0.2 0.2 0.2 1.0";
+	colors[1]	= "0.25 0.25 0.25 0.2";
+	colors[2]	= "0.4 0.4 0.4 0.0";
+
+	sizes[0]	= 2.0;
+	sizes[1]	= 10.0;
+	sizes[2]	= 13.0;
+
+	times[0]	= 0.0;
+	times[1]	= 0.1;
+	times[2]	= 1.0;
+};
+
+datablock ParticleEmitterData(HEGrenadeBlastEmitter)
+{
+	ejectionPeriodMS = 7;
+	periodVarianceMS = 0;
+	lifeTimeMS	   = 21;
+	ejectionVelocity = 10;
+	velocityVariance = 1.0;
+	ejectionOffset   = 1.0;
+	thetaMin         = 0;
+	thetaMax         = 0;
+	phiReferenceVel  = 0;
+	phiVariance      = 90;
+	overrideAdvance = false;
+	particles = "HEGrenadeBlastParticle";
+};
+
+datablock ExplosionData(HEGrenadeBlastExplosion)
+{
+	explosionShape = "Add-Ons/Weapon_Rocket_Launcher/explosionsphere1.dts";
+	lifeTimeMS = 150;
+
+	particleEmitter = HEGrenadeBlastEmitter;
+	particleDensity = 10;
+	particleRadius = 1;
+
+	faceViewer = true;
+	explosionScale = "1 1 1";
+
+	shakeCamera = true;
+	camShakeFreq = "7.0 8.0 7.0";
+	camShakeAmp = "1.0 1.0 1.0";
+	camShakeDuration = 0.5;
+	camShakeRadius = 15.0;
+
+	lightStartRadius = 0;
+	lightEndRadius = 0;
+	lightStartColor = "0.45 0.3 0.1";
+	lightEndColor = "0 0 0";
+
+	impulseRadius = 17;
+	impulseForce = 4000;
+
+	damageRadius = 16;
+	radiusDamage = 200;
+};
+
+datablock ProjectileData(HEGrenadeBlastProjectile)
+{
+    explosion = HEGrenadeBlastExplosion;
+
+	directDamageType = $DamageType::RocketDirect;
+	radiusDamageType = $DamageType::RocketRadius;
+
+	brickExplosionRadius = 10;
+	brickExplosionImpact = false;
+	brickExplosionForce = 25;
+	brickExplosionMaxVolume = 100;
+	brickExplosionMaxVolumeFloating = 60;
+};
+
+datablock ProjectileData(HEGrenadeProjectile)
+{
+	projectileShapeName = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/grenade_projectile.dts";
+    ballRadius = 0.15;
+
+    isBallistic = true;
+    gravityMod = 1;
+	bounceElasticity = 0.4;
+	bounceFriction = 0.3;
+
+    lifeTime = 5000;
+	armingDelay = 5000;
+	fadeDelay = 5000;
+
+    brickExplosionRadius = 0;
+	brickExplosionImpact = false;
+	brickExplosionForce = 0;
+	brickExplosionMaxVolume = 0;
+	brickExplosionMaxVolumeFloating = 0;
+};
+
+function HEGrenadeProjectile::onCollision(%this, %obj, %col, %fade, %position, %normal)
+{
+    if (%col.getType() & $TypeMasks::PlayerObjectType)
+    {
+        %z1 = getWord(%position, 2);
+        %z2 = getWord(%col.getPosition(), 2);
+
+        %p1 = setWord(%position, 2, 0);
+        %p2 = setWord(%col.getPosition(), 2, 0);
+
+        %dot = vectorDot(vectorNormalize(vectorSub(%p1, %p2)), %col.getForwardVector());
+
+        if (%z2 - %z1 > -0.5 || %dot >= 0.1)
+        {
+            if (isObject(%col.client))
+            {
+                if (%col.addTool(HEGrenadeItem, %obj.itemProps) != -1)
+                    %obj.delete();
+            }
+
+            return;
+        }
+
+        if (miniGameCanDamage(%obj, %col) == 1)
+            %col.damage(%obj, %position, 2, $DamageType::Suicide);
+    }
+
+    serverPlay3D(HEGrenadeBounceSound, %position);
+}
+
 datablock ItemData(HEGrenadeItem)
 {
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/grenade.dts";
@@ -43,6 +232,7 @@ datablock ShapeBaseImageData(HEGrenadeImage)
     speedScale = 0.9;
 
     stateName[0] = "Activate";
+    stateSound[0] = HEGrenadeDrawSound;
     stateSequence[0] = "activate";
     stateTimeoutValue[0] = 0.2;
     stateAllowImageChange[0] = false;
@@ -111,14 +301,25 @@ function HEGrenadeProps::onOwnerChange(%this, %owner)
 function HEGrenadeProps::startSchedule(%this, %time)
 {
     cancel(%this.schedule);
+    cancel(%this.beepSchedule);
+
     %this.schedule = %this.owner.schedule(%time, "detonateHEGrenade", %this);
+
+    if (%time >= 1000)
+        %this.beepSchedule = %this.schedule(%time - 1000, "beep");
 }
 
-function spawnHEGrenadeExplosion(%position, %damagePlayer, %damageClient)
+function HEGrenadeProps::beep(%this)
+{
+    serverPlay3D(HEGrenadeBeepSound, %this.owner.getPosition());
+}
+
+function spawnHEGrenadeExplosion(%position, %object, %damagePlayer, %damageClient)
 {
     %projectile = new Projectile()
     {
-        datablock = RocketLauncherProjectile;
+        // datablock = RocketLauncherProjectile;
+        datablock = HEGrenadeBlastProjectile;
 
         initialPosition = %position;
         initialVelocity = "0 0 0";
@@ -131,6 +332,8 @@ function spawnHEGrenadeExplosion(%position, %damagePlayer, %damageClient)
 
     MissionCleanup.add(%projectile);
     %projectile.explode();
+
+    HEGrenadeExplodeSFX.playFrom(%position, %object);
 }
 
 function Player::detonateHEGrenade(%this, %props)
@@ -141,7 +344,7 @@ function Player::detonateHEGrenade(%this, %props)
     if (isObject(%this.client))
         messageClient(%this.client, 'MsgItemPickup', '', %props.itemSlot, 0);
 
-    spawnHEGrenadeExplosion(%this.getHackPosition(), %props.damagePlayer, %props.damageClient);
+    spawnHEGrenadeExplosion(%this.getHackPosition(), %this, %props.damagePlayer, %props.damageClient);
 
     if (isObject(%props)) // player might be deleted after death
         %props.delete();
@@ -149,7 +352,13 @@ function Player::detonateHEGrenade(%this, %props)
 
 function Item::detonateHEGrenade(%this, %props)
 {
-    spawnHEGrenadeExplosion(%this.getPosition(), %props.damagePlayer, %props.damageClient);
+    spawnHEGrenadeExplosion(%this.getPosition(), %this, %props.damagePlayer, %props.damageClient);
+    %this.delete();
+}
+
+function Projectile::detonateHEGrenade(%this, %props)
+{
+    spawnHEGrenadeExplosion(%this.getPosition(), %this, %props.damagePlayer, %props.damageClient);
     %this.delete();
 }
 
@@ -182,24 +391,38 @@ function HEGrenadeImage::onChargeAbort(%this, %obj, %slot)
 
 function HEGrenadeImage::onFire(%this, %obj, %slot)
 {
+    serverPlay3D(HEGrenadeThrowSound, %obj.getMuzzlePoint(%slot));
     %obj.playThread(2, "spearThrow");
     %props = %obj.getItemProps();
 
     %velocity = vectorAdd(vectorScale(%obj.getEyeVector(), 20), vectorScale(%obj.getVelocity(), 0.5));
 
-    %item = new Item()
+    // %item = new Item()
+    // {
+    //     datablock = HEGrenadeItem;
+    //     position = %obj.getEyePoint();
+    //     itemProps = %props;
+    // };
+
+    %item = new Projectile()
     {
-        datablock = HEGrenadeItem;
-        position = %obj.getEyePoint();
+        datablock = HEGrenadeProjectile;
+        initialPosition = %obj.getMuzzlePoint(%slot);
+        initialVelocity = %velocity;
+        sourceObject = %obj;
+        sourceSlot = %slot;
+        client = %obj.client;
         itemProps = %props;
     };
 
     MissionCleanup.add(%item);
 
-    %item.setCollisionTimeout(%obj);
-    %item.setVelocity(%velocity);
-    %item.schedule(9000, "fadeOut");
-    %item.schedule(10000, "delete");
+    // %item.setCollisionTimeout(%obj);
+    // %item.setVelocity(%velocity);
+    // %item.schedule(9000, "fadeOut");
+    // %item.schedule(10000, "delete");
+
+    %obj.itemProps[%obj.currTool] = "";
 
     %props.onOwnerChange(%item);
 
