@@ -324,7 +324,7 @@ datablock ParticleEmitterData(advHugeBulletFireEmitter)
    phiVariance      = 360;
    overrideAdvance = false;
 
-   particles = "advHugeulletFireParticle";
+   particles = "advHugeBulletFireParticle";
 };
 
 datablock ParticleData(advHugeBulletSmokeParticle)

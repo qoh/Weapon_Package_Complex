@@ -137,7 +137,7 @@ datablock ShapeBaseImageData(RevolverImage)
     stateTransitionOnTimeout[5] = "Smoke";
 
     stateName[6] = "Smoke";
-    stateEmitter[6] = gunSmokeEmitter;
+    stateEmitter[6] = advBigBulletSmokeEmitter;
     stateEmitterTime[6] = 0.05;
     stateEmitterNode[6] = "muzzleNode";
     stateTimeoutValue[6] = 0.11;

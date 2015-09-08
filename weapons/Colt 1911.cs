@@ -14,21 +14,21 @@ datablock AudioProfile(Colt1911FireLastSound)
 
 datablock AudioProfile(Colt1911SlidepullSound)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/colt1911\slidepull.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/colt1911/slide_pull.wav";
 	description = AudioClose3d;
 	preload = true;
 };
 
 datablock AudioProfile(Colt1911ClipInSound)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/colt1911\clipin.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/colt1911/clip_in.wav";
 	description = AudioClose3d;
 	preload = true;
 };
 
 datablock AudioProfile(Colt1911ClipOutSound)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/colt1911\clipout.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/colt1911/clip_out.wav";
 	description = AudioClose3d;
 	preload = true;
 };
