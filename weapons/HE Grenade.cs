@@ -5,6 +5,13 @@ datablock AudioProfile(PinOutSound)
     preload = true;
 };
 
+datablock AudioProfile(GrenadeLeverOffSound)
+{
+	fileName = "base/data/sound/clickSuperMove.wav";
+	description = AudioClosest3d;
+	preload = true;
+};
+
 datablock ItemData(HEGrenadeItem)
 {
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/grenade.dts";
@@ -22,6 +29,9 @@ datablock ItemData(HEGrenadeItem)
     fuseTime = 3000;
     itemPropsClass = "HEGrenadeProps";
     itemPropsAlways = true;
+
+    customPickupAlways = true;
+    customPickupMultiple = true;
 };
 
 datablock ShapeBaseImageData(HEGrenadeImage)
@@ -30,6 +40,7 @@ datablock ShapeBaseImageData(HEGrenadeImage)
 
     item = HEGrenadeItem;
     armReady = 1;
+    speedScale = 0.9;
 
     stateName[0] = "Activate";
     stateSequence[0] = "activate";
@@ -62,6 +73,7 @@ datablock ShapeBaseImageData(HEGrenadeImage)
     stateTransitionOnTimeout[4] = "Ready";
 
     stateName[5] = "ChargeReady";
+    stateScript[5] = "onChargeReady";
     stateAllowImageChange[5] = false;
     stateTransitionOnTriggerUp[5] = "Fire";
 
@@ -141,14 +153,31 @@ function Item::detonateHEGrenade(%this, %props)
     %this.delete();
 }
 
+function HEGrenadeImage::onUnMount(%this, %obj, %slot)
+{
+    %obj.playThread(2, "root");
+}
+
 function HEGrenadeImage::onCharge(%this, %obj, %slot)
 {
     %obj.playThread(2, "spearReady");
+
+    if (isObject(%obj.client))
+        %obj.client.updateDetailedGunHelp();
+}
+
+function HEGrenadeImage::onChargeReady(%this, %obj, %slot)
+{
+    if (isObject(%obj.client))
+        %obj.client.updateDetailedGunHelp();
 }
 
 function HEGrenadeImage::onChargeAbort(%this, %obj, %slot)
 {
     %obj.playThread(2, "root");
+
+    if (isObject(%obj.client))
+        %obj.client.updateDetailedGunHelp();
 }
 
 function HEGrenadeImage::onFire(%this, %obj, %slot)
@@ -188,8 +217,68 @@ function HEGrenadeImage::onTrigger(%this, %obj, %slot, %trigger, %state)
     if (%state)
     {
         %props.pinOut = true;
+        %obj.playThread(2, "shiftRight");
         serverPlay3D(PinOutSound, %obj.getMuzzlePoint(0));
+        // need to drop pin item
     }
     else if (%props.pinOut)
+    {
         %props.startSchedule(HEGrenadeItem.fuseTime);
+        %obj.playThread(3, "shiftLeft");
+        serverPlay3D(GrenadeLeverOffSound, %obj.getMuzzlePoint(0));
+    }
+
+    if (isObject(%obj.client))
+        %obj.client.updateDetailedGunHelp();
+}
+
+function HEGrenadeImage::getGunHelp(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+
+    if (isEventPending(%props.schedule))
+        return "This grenade is primed! Press Ctrl+W (or the custom 'Drop Item' key) to quickly dispose of it. Make sure you run away!";
+
+    if (%props.pinOut)
+        return "You pulled the pin and you're clutching the lever. The grenade will prime itself as you release right click or throw it (hold LMB or Ctrl+W).";
+
+    return "To throw a grenade, either hold left click or tap Ctrl+W. To prime a grenade, tap right click. It will explode 3 seconds after being primed.";
+}
+
+function HEGrenadeImage::getDetailedGunHelp(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+    %state = %obj.getImageState(%slot);
+
+    %text = "<just:right><font:consolas:16>";
+
+    %throw_text = "Throw   ";
+    %lob_text   = "Lob     ";
+
+    %lob_key    = "Drop Item      ";
+
+    if (%state $= "ChargeReady")
+        %throw_key = "release Primary";
+    else
+        %throw_key  = "hold Primary   ";
+
+    if (%props.pinOut)
+    {
+        %pin_text = "Prime   ";
+        %pin_key = "release Jet    ";
+    }
+    else
+    {
+        %pin_text   = "Pull Pin";
+        %pin_key    = "Jet            ";
+    }
+
+	%text = "<just:right><font:consolas:16>";
+	%text = %text @ "\c6" @ %throw_text @ "   " @ %throw_key @ " \n";
+	%text = %text @ "\c6" @ %lob_text   @ "   " @ %lob_key   @ " \n";
+
+    if (!isEventPending(%props.schedule))
+	   %text = %text @ "\c6" @ %pin_text   @ "   " @ %pin_key   @ " \n";
+
+	return %text;
 }

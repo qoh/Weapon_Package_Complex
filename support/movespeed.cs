@@ -12,10 +12,15 @@ function ShapeBaseImageData::getStateIndex(%this, %name)
 function Player::getSpeedScale(%this)
 {
     %scale = 1;
+    return %scale;
 
     for (%i = 0; %i < 4; %i++)
     {
         %image = %this.getMountedImage(%i);
+
+        if (%image.speedScale !$= "")
+            %scale *= %image.speedScale;
+
         %state = %this.getImageState(%i);
 
         if (!isObject(%image) || %state $= "")

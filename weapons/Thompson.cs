@@ -1,9 +1,19 @@
+addDamageType("Thompson",
+	'<bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_thompson> %1',
+	'%2 <bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_thompson> %1',
+	0.2, 1);
+addDamageType("ThompsonHeadshot",
+	'<bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_thompson><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
+	'%2 <bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_thompson><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
+	0.2, 1);
+
 datablock AudioProfile(ThompsonFireSound)
 {
 	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/thompson/fire.wav";
 	description = AudioClose3d;
 	preload = true;
 };
+
 datablock AudioProfile(ThompsonFireLastSound)
 {
 	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/thompson/fire_last.wav";
@@ -23,7 +33,7 @@ datablock ItemData(ThompsonItem)
 	emap = true;
 
     canDrop = 1;
-    uiName = "Thompson SMG";
+    uiName = "Thompson";
     image = ThompsonImage;
 
     itemPropsClass = "SimpleMagWeaponProps";
@@ -39,9 +49,18 @@ function ThompsonItem::onAdd(%this, %obj)
 
 datablock ShapeBaseImageData(ThompsonImage)
 {
+	className = "TimeSliceRayWeapon";
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/thompson_mg.dts";
+
     item = ThompsonItem;
     armReady = 1;
+	speedScale = 0.8;
+
+	fireMuzzleVelocity = cf_muzzlevelocity_ms(285);
+	fireVelInheritFactor = 0.6;
+	fireGravity = cf_bulletdrop_grams(15);
+	fireHitExplosion = GunProjectile;
+	fireSpread = 2.5;
 
     stateName[0] = "Activate";
 	stateSequence[0] = "activate";
@@ -56,7 +75,7 @@ datablock ShapeBaseImageData(ThompsonImage)
 	stateSequence[2] = "noammo";
     stateTransitionOnLoaded[2] = "Ready";
     stateTransitionOnTriggerDown[2] = "EmptyFire";
-	stateTransitionOnAmmo[2] = "PullBackSlide";
+	stateTransitionOnAmmo[2] = "Reload";
 
     stateName[3] = "EmptyFire";
     stateScript[3] = "onEmptyFire";
@@ -68,7 +87,7 @@ datablock ShapeBaseImageData(ThompsonImage)
 
     stateName[4] = "Ready";
 	stateSequence[4] = "root";
-	stateTransitionOnAmmo[4] = "PullBackSlide";
+	stateTransitionOnAmmo[4] = "Reload";
     stateTransitionOnTriggerDown[4] = "Fire";
 
     stateName[5] = "Fire";
@@ -90,8 +109,8 @@ datablock ShapeBaseImageData(ThompsonImage)
 	stateAllowImageChange[6] = false;
 	stateTransitionOnTimeout[6] = "CheckChamber";
 
-	stateName[7] = "PullBackSlide";
-	stateScript[7] = "onPullBackSlide";
+	stateName[7] = "Reload";
+	stateScript[7] = "onReload";
 	stateSound[7] = ComplexBoltSound;
 	stateSequence[7] = "Fire";
 	stateTimeoutValue[7] = 0.2;
@@ -103,32 +122,12 @@ datablock ShapeBaseImageData(ThompsonImage)
 
 function ThompsonImage::onMount(%this, %obj, %slot)
 {
-    %obj.debugWeapon();
-
     %props = %obj.getItemProps();
-    %obj.setImageLoaded(%slot, %props.loaded);
-}
 
-function ThompsonImage::onPullBackSlide(%this, %obj, %slot)
-{
-	%props = %obj.getItemProps();
+	if (%props.chamber $= "")
+		%props.chamber = 0;
 
-	if (%props.loaded)
-	{
-		// eject shell
-		%props.loaded = false;
-	}
-
-	if (%props.magazine.count >= 1)
-	{
-		%props.magazine.count--;
-		%props.loaded = true;
-
-		%obj.playThread(2, "plant");
-	}
-
-	%obj.setImageAmmo(%slot, false);
-	%obj.setImageLoaded(%slot, %props.loaded);
+    %obj.setImageLoaded(%slot, %props.chamber == 1);
 }
 
 function ThompsonImage::onEmptyFire(%this, %obj, %slot)
@@ -141,8 +140,6 @@ function ThompsonImage::onEmptyFire(%this, %obj, %slot)
 		return;
 	}
 
-	%obj.playThread(2, "plant");
-
     serverPlay3D(RevolverClickSound, %obj.getMuzzlePoint(%slot));
 }
 
@@ -151,46 +148,47 @@ function ThompsonImage::onFire(%this, %obj, %slot)
 	if (%obj.getState() $= "Dead")
 		return;
 
-    %props = %obj.getItemProps();
-
-    if (!%props.loaded)
-        // shouldn't happen
-        return;
-
 	%obj.playThread(2, "plant");
 
-    // fire bullet
-    %proj = new ScriptObject()
-	{
-		class = "ProjectileRayCast";
-		superClass = "TimedRayCast";
-		position = %obj.getMuzzlePoint(0);
-		velocity = vectorScale(%obj.getMuzzleVector(%slot), cf_muzzlevelocity_ms(285));
-		gravity = "0 0" SPC cf_bulletdrop_grams(15);
-		lifetime = 3;
-		mask = $TypeMasks::PlayerObjectType | $TypeMasks::FxBrickObjectType | $TypeMasks::TerrainObjectType;
-		exempt = %obj;
-		sourceObject = %obj;
-		sourceClient = %obj.client;
-		damage = 6;
-		damageType = $DamageType::Generic;
-		hitExplosion = GunProjectile;
-    };
+	%props = %obj.getItemProps();
+	%props.chamber = 2;
 
-    MissionCleanup.add(%proj);
-    %proj.fire();
+	Parent::onFire(%this, %obj, %slot);
 
     if (%props.magazine.count >= 1)
-    {
-        %props.magazine.count--;
         serverPlay3D(ThompsonFireSound, %obj.getMuzzlePoint(%slot));
-    }
     else
-    {
-        %props.loaded = false;
-        %obj.setImageLoaded(%slot, false);
         serverPlay3D(ThompsonFireLastSound, %obj.getMuzzlePoint(%slot));
-    }
+
+	%this.pullSlide(%obj, %slot);
+}
+
+function ThompsonImage::onReload(%this, %obj, %slot)
+{
+	%this.pullSlide(%obj, %slot);
+	%obj.setImageAmmo(%slot, false);
+}
+
+function ThompsonImage::pullSlide(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+
+	if (%props.chamber != 0)
+	{
+		%obj.ejectShell(Bullet45Item, 1, %props.chamber == 2);
+		%props.chamber = 0;
+	}
+
+	if (%props.magazine.count >= 1)
+	{
+		%props.magazine.count--;
+		%props.chamber = 1;
+	}
+
+	%obj.setImageLoaded(%slot, %props.chamber == 1);
+
+	if (isObject(%obj.client))
+		%obj.client.updateDetailedGunHelp();
 }
 
 function ThompsonImage::onLight(%this, %obj, %slot)
@@ -218,6 +216,9 @@ function ThompsonImage::onLight(%this, %obj, %slot)
             messageClient(%obj.client, '', '\c6You don\'t have any magazines for this weapon.');
     }
 
+	if (isObject(%obj.client))
+		%obj.client.updateDetailedGunHelp();
+
     return 1;
 }
 
@@ -234,6 +235,25 @@ function ThompsonImage::onTrigger(%this, %obj, %slot, %trigger, %state)
     return 0;
 }
 
+function ThompsonImage::damage(%this, %obj, %col, %position, %normal)
+{
+	if (%col.getRegion(%position, true) $= "head")
+	{
+		%damage = 12;
+		%damageType = $DamageType::ThompsonHeadshot;
+	}
+	else
+	{
+		%damage = 8;
+		%damageType = $DamageType::Thompson;
+	}
+
+	if (!$NoCrouchDamageBonus && %col.isCrouched())
+		%damage /= 2;
+
+	%col.damage(%obj, %position, %damage, %damageType);
+}
+
 // function ThompsonImage::getDebugText(%this, %obj, %slot)
 // {
 //     %props = %obj.getItemProps();
@@ -244,3 +264,73 @@ function ThompsonImage::onTrigger(%this, %obj, %slot, %trigger, %state)
 //
 //     return %text;
 // }
+
+function ThompsonImage::getGunHelp(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+
+	if (%props.chamber == 1)
+		return "Your gun is ready to fire. Left click to shoot. Its full-auto action will automatically try to load the next bullet.";
+
+	if (isObject(%props.magazine))
+	{
+		if (%props.magazine.count < 1)
+			return "The magazine in your gun is empty. Press the light key to eject it.";
+
+		return "Your gun has a magazine inserted, but no bullet is chambered. Right click to cycle the action and chamber the next bullet.";
+	}
+
+	%index = %obj.findMagazine(%this.item);
+
+	if (%index == -1)
+		return "You have no magazines for your gun. You need to get a magazine first.";
+
+	if (%index == -2)
+		return "All your magazines are empty. You need to get a non-empty magazine first.";
+
+	return "Your gun has no magazine inserted. Press the light key to insert whichever magazine you have with the most bullets.";
+}
+
+function ThompsonImage::getDetailedGunHelp(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+
+	%kt_lmb = "Primary";
+	%kt_rmb = "Jet    ";
+	%kt_r   = "Light  ";
+
+	%at_fire     = "Dryfire        ";
+	%at_action   = "Pull Slide     ";
+	%at_magazine = "Insert Magazine";
+
+	%ac_fire     = "\c7";
+	%ac_action   = "\c7";
+	%ac_magazine = "\c7";
+
+	if (%props.chamber == 1)
+		%at_fire = "Fire           ";
+
+	if (isObject(%props.magazine))
+		%at_magazine = "Eject Magazine ";
+
+	if (%props.chamber == 1)
+	{
+		%ac_fire = "\c6";
+	}
+	else if (isObject(%props.magazine))
+	{
+		if (%props.magazine.count >= 1)
+			%ac_action = "\c6";
+		else
+			%ac_magazine = "\c6";
+	}
+
+	if (!isObject(%props.magazine))
+		%ac_magazine = "\c6";
+
+	%text = "<just:right><font:consolas:16>";
+	%text = %text @ %ac_fire     @ %at_fire     @ "   " @ %kt_lmb @ " \n";
+	%text = %text @ %ac_action   @ %at_action   @ "   " @ %kt_rmb @ " \n";
+	%text = %text @ %ac_magazine @ %at_magazine @ "   " @ %kt_r   @ " \n";
+	return %text;
+}

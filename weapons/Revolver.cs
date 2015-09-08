@@ -87,11 +87,18 @@ datablock ItemData(RevolverItem)
 
 datablock ShapeBaseImageData(RevolverImage)
 {
+	className = "TimeSliceRayWeapon";
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/S&W_Revolver.dts";
+
+	fireMuzzleVelocity = cf_muzzlevelocity_ms(396.24);
+	fireVelInheritFactor = 0.25;
+	fireGravity = cf_bulletdrop_grams(10);
+	fireHitExplosion = GunProjectile;
 
     item = RevolverItem;
     armReady = true;
 	isRevolver = true;
+	speedScale = 0.85;
 
 	insertSound0 = AdvReloadInsert1Sound;
 	insertSound1 = AdvReloadInsert2Sound;
@@ -126,7 +133,7 @@ datablock ShapeBaseImageData(RevolverImage)
 
     stateName[5] = "Fire";
     stateFire[5] = true;
-	stateSound[3] = RevolverFireSound;
+	stateSound[5] = RevolverFireSound;
     stateScript[5] = "onFire";
     stateSequence[5] = "fire";
     stateEmitter[5] = advBigBulletFireEmitter;
@@ -266,9 +273,6 @@ function RevolverImage::onEmptyFire(%this, %obj, %slot)
 
     %props = %obj.getItemProps();
     %props.currSlot = (%props.currSlot + 1) % 6;
-
-    %obj.playThread(2, "shiftLeft");
-    %obj.playThread(3, "shiftRight");
 }
 
 function RevolverImage::onFire(%this, %obj, %slot)
@@ -276,6 +280,7 @@ function RevolverImage::onFire(%this, %obj, %slot)
     if (%obj.getState() $= "Dead")
         return;
 
+	Parent::onFire(%this, %obj, %slot);
 	// %proj = new ScriptObject()
 	// {
 	// 	class = "ProjectileRayCast";
@@ -307,10 +312,40 @@ function RevolverImage::onFire(%this, %obj, %slot)
 function RevolverImage::onEjectShell(%this, %obj, %slot)
 {
     %props = %obj.getItemProps();
-    %props.slot[%props.currSlot] = 0;
-    %props.currSlot = (%props.currSlot + 1) % 6;
 
-    %obj.setImageLoaded(%slot, false);
+	if (%props.slot[%props.currSlot] != 0)
+	{
+		%obj.ejectShell(Bullet45Item, 0.5, %props.slot[%props.currSlot] == 2);
+    	%props.slot[%props.currSlot] = 0;
+	}
+
+    %props.currSlot = (%props.currSlot + 1) % 6;
+    %obj.setImageLoaded(%slot, %props.slot[%props.currSlot] != 0);
+}
+
+function RevolverImage::damage(%this, %obj, %col, %position, %normal)
+{
+	if (%col.getRegion(%position, true) $= "head")
+	{
+		%damage = 75;
+		%damageType = $DamageType::RevolverHeadshot;
+	}
+	else
+	{
+		%damage = 25;
+		%damageType = $DamageType::Revolver;
+	}
+
+	if (!$NoCrouchDamageBonus && %col.isCrouched())
+		%damage /= 2;
+
+	%col.damage(%obj, %position, %damage, %damageType);
+}
+
+function RevolverImage::getGunHelp(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+	return "How the hell do you expect me to make gun help for a /revolver/?! Jesus Christ.";
 }
 
 function Player::revolverInput(%this, %x, %y, %z)

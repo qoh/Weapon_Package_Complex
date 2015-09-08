@@ -1,3 +1,12 @@
+addDamageType("M1Garand",
+	'<bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_m1garand> %1',
+	'%2 <bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_m1garand> %1',
+	0.2, 1);
+addDamageType("M1GarandHeadshot",
+	'<bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_m1garand><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
+	'%2 <bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_m1garand><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
+	0.2, 1);
+
 datablock AudioProfile(M1GarandFireSound)
 {
     fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m1garand/fire.wav";
@@ -31,10 +40,17 @@ datablock ItemData(M1GarandItem)
 
 datablock ShapeBaseImageData(M1GarandImage)
 {
+    className = "TimeSliceRayWeapon";
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/m1garand.dts";
+
+    fireMuzzleVelocity = cf_muzzlevelocity_ms(853);
+	fireVelInheritFactor = 0.5;
+	fireGravity = cf_bulletdrop_grams(150);
+	fireHitExplosion = GunProjectile;
 
     item = M1GarandItem;
     armReady = true;
+    speedScale = 0.7;
 
     stateName[0] = "Activate";
     stateSequence[0] = "activate";
@@ -67,14 +83,14 @@ datablock ShapeBaseImageData(M1GarandImage)
     stateEmitter[4] = advBigBulletFireEmitter;
     stateEmitterTime[4] = 0.05;
     stateEmitterNode[4] = "muzzleNode";
-    stateTimeoutValue[4] = 0.15;
+    stateTimeoutValue[4] = 0.1;
     stateFire[4] = true;
     stateAllowImageChange[4] = false;
     stateTransitionOnTimeout[4] = "Smoke";
 
     stateName[5] = "Smoke";
     stateEmitter[5] = advBigBulletSmokeEmitter;
-    stateEmitterTime[5] = 0.05;
+    stateEmitterTime[5] = 0.25;
     stateEmitterNode[5] = "muzzleNode";
     stateTimeoutValue[5] = 0.3;
     stateAllowImageChange[5] = false;
@@ -93,83 +109,59 @@ datablock ShapeBaseImageData(M1GarandImage)
 function M1GarandImage::onMount(%this, %obj, %slot)
 {
     %props = %obj.getItemProps();
-    %obj.setImageLoaded(%slot, %props.loaded);
+
+    if (%props.chamber $= "")
+        %props.chamber = 0;
+
+    %obj.setImageLoaded(%slot, %props.chamber == 1);
 }
 
 function M1GarandImage::onEmptyFire(%this, %obj, %slot)
 {
-    %props = %obj.getItemProps();
-
-    if (%props.magazine.count >= 1)
-    {
-        %obj.setImageAmmo(%slot, true);
-        return;
-    }
-
-    %obj.playThread(2, "shiftLeft");
-    %obj.playThread(3, "shiftRight");
-
     serverPlay3D(RevolverClickSound, %obj.getMuzzlePoint(%slot));
 }
 
 function M1GarandImage::onFire(%this, %obj, %slot)
 {
     %props = %obj.getItemProps();
+    %props.chamber = 2;
 
-    // fire bullet
-    %proj = new ScriptObject()
-	{
-		class = "ProjectileRayCast";
-		superClass = "TimedRayCast";
-		position = %obj.getMuzzlePoint(0);
-		velocity = vectorScale(%obj.getMuzzleVector(%slot), cf_muzzlevelocity_ms(853));
-		gravity = "0 0" SPC cf_bulletdrop_grams(12);
-		lifetime = 3;
-		mask = $TypeMasks::PlayerObjectType | $TypeMasks::FxBrickObjectType | $TypeMasks::TerrainObjectType;
-		exempt = %obj;
-		sourceObject = %obj;
-		sourceClient = %obj.client;
-		damage = 40;
-		damageType = $DamageType::Generic;
-		hitExplosion = GunProjectile;
-    };
-
-    MissionCleanup.add(%proj);
-    %proj.fire();
+    Parent::onFire(%this, %obj, %slot);
 
     if (%props.magazine.count >= 1)
-    {
-        %props.magazine.count--;
         serverPlay3D(M1GarandFireSound, %obj.getMuzzlePoint(%slot));
-    }
     else
-    {
-        %props.loaded = false;
         serverPlay3D(M1GarandFireLastSound, %obj.getMuzzlePoint(%slot));
-        %obj.setImageLoaded(%slot, false);
-    }
+
+    %this.pullSlide(%obj, %slot);
 }
 
 function M1GarandImage::onReload(%this, %obj, %slot)
 {
+    %this.pullSlide(%obj, %slot);
+    %obj.setImageAmmo(%slot, false);
+}
+
+function M1GarandImage::pullSlide(%this, %obj, %slot)
+{
     %props = %obj.getItemProps();
 
-    if (%props.loaded)
+    if (%props.chamber != 0)
     {
-        %props.loaded = false;
-        // eject shell
+        %obj.ejectShell(Bullet45Item, 1, %props.chamber == 2);
+        %props.chamber = 0;
     }
 
     if (%props.magazine.count >= 1)
     {
         %props.magazine.count--;
-        %props.loaded = true;
-
-        %obj.playThread(2, "plant");
+        %props.chamber = 1;
     }
 
-    %obj.setImageLoaded(%slot, %props.loaded);
-    %obj.setImageAmmo(%slot, false);
+    %obj.setImageLoaded(%slot, %props.chamber == 1);
+
+    if (isObject(%obj.client))
+        %obj.client.updateDetailedGunHelp();
 }
 
 function M1GarandImage::onLight(%this, %obj, %slot)
@@ -197,6 +189,9 @@ function M1GarandImage::onLight(%this, %obj, %slot)
             messageClient(%obj.client, '', '\c6You don\'t have any magazines for this weapon.');
     }
 
+    if (isObject(%obj.client))
+        %obj.client.updateDetailedGunHelp();
+
     return 1;
 }
 
@@ -211,4 +206,93 @@ function M1GarandImage::onTrigger(%this, %obj, %slot, %trigger, %state)
     }
 
     return 0;
+}
+
+function M1GarandImage::damage(%this, %obj, %col, %position, %normal)
+{
+	if (%col.getRegion(%position, true) $= "head")
+	{
+		%damage = 90;
+		%damageType = $DamageType::M1GarandHeadshot;
+	}
+	else
+	{
+		%damage = 30;
+		%damageType = $DamageType::M1Garand;
+	}
+
+	if (!$NoCrouchDamageBonus && %col.isCrouched())
+		%damage /= 2;
+
+	%col.damage(%obj, %position, %damage, %damageType);
+}
+
+function M1GarandImage::getGunHelp(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+
+	if (%props.chamber == 1)
+		return "Your gun is ready to fire. Left click to shoot. Its semi-auto action will automatically try to load the next bullet.";
+
+	if (isObject(%props.magazine))
+	{
+		if (%props.magazine.count < 1)
+			return "The magazine in your gun is empty. Press the light key to eject it.";
+
+		return "Your gun has a magazine inserted, but no bullet is chambered. Right click to cycle the action and chamber the next bullet.";
+	}
+
+	%index = %obj.findMagazine(%this.item);
+
+	if (%index == -1)
+		return "You have no magazines for your gun. You need to get a magazine first.";
+
+	if (%index == -2)
+		return "All your magazines are empty. You need to get a non-empty magazine first.";
+
+	return "Your gun has no magazine inserted. Press the light key to insert whichever magazine you have with the most bullets.";
+}
+
+function M1GarandImage::getDetailedGunHelp(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+
+	%kt_lmb = "Primary";
+	%kt_rmb = "Jet    ";
+	%kt_r   = "Light  ";
+
+	%at_fire     = "Dryfire        ";
+	%at_action   = "Pull Slide     ";
+	%at_magazine = "Insert Magazine";
+
+	%ac_fire     = "\c7";
+	%ac_action   = "\c7";
+	%ac_magazine = "\c7";
+
+	if (%props.chamber == 1)
+		%at_fire = "Fire           ";
+
+	if (isObject(%props.magazine))
+		%at_magazine = "Eject Magazine ";
+
+	if (%props.chamber == 1)
+	{
+		%ac_fire = "\c6";
+	}
+	else if (isObject(%props.magazine))
+	{
+		if (%props.magazine.count >= 1)
+			%ac_action = "\c6";
+		else
+			%ac_magazine = "\c6";
+	}
+
+	if (!isObject(%props.magazine))
+		%ac_magazine = "\c6";
+
+	%text = "<just:right><font:consolas:16>";
+	%text = %text @ %ac_fire     @ %at_fire     @ "   " @ %kt_lmb @ " \n";
+	%text = %text @ %ac_action   @ %at_action   @ "   " @ %kt_rmb @ " \n";
+	%text = %text @ %ac_magazine @ %at_magazine @ "   " @ %kt_r   @ " \n";
+	return %text;
 }

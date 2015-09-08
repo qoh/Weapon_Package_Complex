@@ -1,3 +1,8 @@
+addDamageType("Remington870",
+	'<bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_remmington> %1',
+	'%2 <bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_remmington> %1',
+	0.2, 1);
+
 datablock AudioProfile(Remington870FireSound)
 {
     fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/remington870/fire.wav";
@@ -36,10 +41,19 @@ datablock ItemData(Remington870Item)
 
 datablock ShapeBaseImageData(Remington870Image)
 {
+    className = "TimeSliceRayWeapon";
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/remmington870.dts";
+
+    fireMuzzleVelocity = cf_muzzlevelocity_ms(472.44);
+	fireVelInheritFactor = 0.75;
+	fireGravity = cf_bulletdrop_grams(25);
+	fireHitExplosion = GunProjectile;
+    fireCount = 8;
+	fireSpread = 11;
 
     item = Remington870Item;
     armReady = true;
+	speedScale = 0.795;
 
     stateName[0] = "Activate";
     stateSequence[0] = "activate";
@@ -55,7 +69,8 @@ datablock ShapeBaseImageData(Remington870Image)
     stateName[2] = "EmptyFire";
     stateScript[2] = "onEmptyFire";
     stateTimeoutValue[2] = 0.13;
-    stateTransitionOnTimeout[2] = "Empty";
+	stateWaitForTimeout[2] = true;
+    stateTransitionOnTriggerUp[2] = "Empty";
 
     stateName[3] = "Ready";
     stateSequence[1] = "root";
@@ -85,7 +100,7 @@ datablock ShapeBaseImageData(Remington870Image)
     stateSound[6] = Remington870PumpSound;
     stateScript[6] = "onPump";
     stateSequence[6] = "Pump";
-    stateTimeoutValue[6] = 0.2;
+    stateTimeoutValue[6] = 0.3; // 0.2
     stateWaitForTimeout[6] = true;
     stateTransitionOnNoAmmo[6] = "Empty";
 };
@@ -100,13 +115,42 @@ function Remington870Image::onMount(%this, %obj, %slot)
     %obj.setImageLoaded(%slot, %props.chamber == 1);
 }
 
+function Remington870Image::onEmptyFire(%this, %obj, %slot)
+{
+    %props = %obj.getItemProps();
+
+    // if (%props.count >= 1)
+    // {
+    //     %obj.setImageAmmo(%slot, true);
+    //     return;
+    // }
+
+    serverPlay3D(RevolverClickSound, %obj.getMuzzlePoint(%slot));
+}
+
+function Remington870Image::onFire(%this, %obj, %slot)
+{
+    %props = %obj.getItemProps();
+
+    Parent::onFire(%this, %obj, %slot);
+
+    %obj.playThread(2, "shiftLeft");
+    %obj.playThread(3, "shiftRight");
+
+    %props.chamber = 2;
+    %obj.setImageLoaded(%slot, false);
+
+	if (isObject(%obj.client))
+		%obj.client.updateDetailedGunHelp();
+}
+
 function Remington870Image::onPump(%this, %obj, %slot)
 {
     %props = %obj.getItemProps();
 
     if (%props.chamber != 0)
     {
-        // eject shell
+        %obj.ejectShell(Bullet45Item, 1.35, %props.chamber == 2);
         %props.chamber = 0;
     }
 
@@ -119,56 +163,9 @@ function Remington870Image::onPump(%this, %obj, %slot)
 
     %obj.setImageLoaded(%slot, %props.chamber == 1);
     %obj.setImageAmmo(%slot, false);
-}
 
-function Remington870Image::onEmptyFire(%this, %obj, %slot)
-{
-    %props = %obj.getItemProps();
-
-    if (%props.count >= 1)
-    {
-        %obj.setImageAmmo(%slot, true);
-        return;
-    }
-
-    %obj.playThread(2, "shiftLeft");
-    %obj.playThread(3, "shiftRight");
-
-    serverPlay3D(RevolverClickSound, %obj.getMuzzlePoint(%slot));
-}
-
-function Remington870Image::onFire(%this, %obj, %slot)
-{
-    %props = %obj.getItemProps();
-
-    for (%i = 0; %i < 8; %i++)
-    {
-        // %proj = new ScriptObject()
-    	// {
-    	// 	class = "ProjectileRayCast";
-    	// 	superClass = "TimedRayCast";
-    	// 	position = %obj.getMuzzlePoint(0);
-    	// 	velocity = vectorScale(%obj.getMuzzleVector(%slot), cf_muzzlevelocity_ms(251));
-    	// 	gravity = "0 0" SPC cf_bulletdrop_grams(15);
-    	// 	lifetime = 3;
-    	// 	mask = $TypeMasks::PlayerObjectType | $TypeMasks::FxBrickObjectType | $TypeMasks::TerrainObjectType;
-    	// 	exempt = %obj;
-    	// 	sourceObject = %obj;
-    	// 	sourceClient = %obj.client;
-    	// 	damage = 16;
-    	// 	damageType = $DamageType::Generic;
-    	// 	hitExplosion = GunProjectile;
-        // };
-        //
-        // MissionCleanup.add(%proj);
-        // %proj.fire();
-    }
-
-    %obj.playThread(2, "shiftLeft");
-    %obj.playThread(3, "shiftRight");
-
-    %props.chamber = 2;
-    %obj.setImageLoaded(%slot, false);
+	if (isObject(%obj.client))
+		%obj.client.updateDetailedGunHelp();
 }
 
 function Remington870Image::onTrigger(%this, %obj, %slot, %trigger, %state)
@@ -186,26 +183,101 @@ function Remington870Image::onLight(%this, %obj, %slot)
 {
     %props = %obj.getItemProps();
 
-    if (%props.count < 4)
+    if (%props.count < 6)
     {
+		if ($Sim::Time - %obj.lastRemingtonInsert <= 0.2)
+			return 1;
+
+		%obj.lastRemingtonInsert = $Sim::Time;
+
         %props.count++;
         %obj.playThread(2, "plant");
         serverPlay3D(Remington870InsertSound, %obj.getMuzzlePoint(%slot));
+
+		if (isObject(%obj.client))
+			%obj.client.updateDetailedGunHelp();
+
         return 1;
     }
 
     return 0;
 }
 
-function Remington870Image::getDebugText(%this, %obj, %slot)
+function Remington870Image::damage(%this, %obj, %col, %position, %normal)
 {
-    %props = %obj.getItemProps();
-    %text = "\c6" @ (%props.chamber == 2 ? "spent" : (%props.chamber == 1 ? "loaded" : "empty")) @ " \c3";
+	%damage = 9;
+	%damageType = $DamageType::Remington870;
 
-    for (%i = 0; %i < %props.count; %i++) %text = %text @ "o";
-    %text = %text @ "\c7";
-    for (0; %i < 4; %i++) %text = %text @ "o";
-    %text = %text @ "\n";
+	if (!$NoCrouchDamageBonus && %col.isCrouched())
+		%damage /= 2;
 
-    return %text;
+	%col.damage(%obj, %position, %damage, %damageType);
+}
+
+// function Remington870Image::getDebugText(%this, %obj, %slot)
+// {
+//     %props = %obj.getItemProps();
+//     %text = "\c6" @ (%props.chamber == 2 ? "spent" : (%props.chamber == 1 ? "loaded" : "empty")) @ " \c3";
+//
+//     for (%i = 0; %i < %props.count; %i++) %text = %text @ "o";
+//     %text = %text @ "\c7";
+//     for (0; %i < 6; %i++) %text = %text @ "o";
+//     %text = %text @ "\n";
+//
+//     return %text;
+// }
+
+function Remington870Image::getGunHelp(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+
+	if (%props.chamber == 1)
+		return "Your gun is ready to fire. Left click to shoot. You will need to pump the action afterwards to chamber the next bullet.";
+
+	if (%props.count < 1)
+		return "Your gun has no more bullets stored. Press the light key to insert one.";
+
+	return "Your gun has bullets stored, but no bullet is chambered. Right click to pump the action and chamber the next bullet.";
+}
+
+function Remington870Image::getDetailedGunHelp(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+
+	%kt_lmb = "Primary";
+	%kt_rmb = "Jet    ";
+	%kt_r   = "Light  ";
+
+	%at_fire     = "Dryfire     ";
+	%at_action   = "Pump Action ";
+	%at_magazine = "Insert Round";
+
+	%ac_fire     = "\c7";
+	%ac_action   = "\c7";
+	%ac_magazine = "\c7";
+
+	if (%props.chamber == 1)
+		%at_fire = "Fire        ";
+
+	if (%props.chamber == 1)
+		%ac_fire = "\c6";
+	else
+	{
+		if (%props.count >= 1)
+			%ac_action = "\c6";
+		else
+			%ac_magazine = "\c6";
+	}
+
+	if (%props.chamber == 2)
+		%ac_action = "\c6";
+
+	if (%props.count < 6)
+		%ac_magazine = "\c6";
+
+	%text = "<just:right><font:consolas:16>";
+	%text = %text @ %ac_fire     @ %at_fire     @ "   " @ %kt_lmb @ " \n";
+	%text = %text @ %ac_action   @ %at_action   @ "   " @ %kt_rmb @ " \n";
+	%text = %text @ %ac_magazine @ %at_magazine @ "   " @ %kt_r   @ " \n";
+	return %text;
 }

@@ -1,3 +1,12 @@
+addDamageType("M24Rifle",
+	'<bitmap:base/client/ui/ci/skull> %1',
+	'%2 <bitmap:base/client/ui/ci/skull> %1',
+	0.2, 1);
+addDamageType("M24RifleHeadshot",
+	'<bitmap:base/client/ui/ci/skull><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
+	'%2 <bitmap:base/client/ui/ci/skull><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
+	0.2, 1);
+
 datablock AudioProfile(SniperFire1Sound)
 {
     fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m24rifle/fire1.wav";
@@ -54,25 +63,33 @@ function M24RifleProps::onAdd(%this)
 datablock ShapeBaseImageData(M24RifleImage)
 {
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/remmington700_sniper.dts";
+
     item = M24RifleItem;
     armReady = 1;
 
-    stateName[0] = "Ready";
-    stateTransitionOnTriggerDown[0] = "Cycle";
+    speedScale = 0.6;
 
-    stateName[1] = "Cycle";
-    stateScript[1] = "onCycle";
-    stateTimeoutValue[1] = 0.65;
-    stateAllowImageChange[1] = false;
-    stateWaitForTimeout[1] = true;
-    stateTransitionOnTriggerUp[1] = "Ready";
+    stateName[0] = "Activate";
+    stateTimeoutValue[0] = 0.3;
+    stateTransitionOnTimeout[0] = "Ready";
+
+    stateName[1] = "Ready";
+    stateTransitionOnAmmo[1] = "Cycle";
+
+    stateName[2] = "Cycle";
+    stateSequence[2] = "Bolt";
+    stateScript[2] = "onCycle";
+    stateTimeoutValue[2] = 1;
+    stateAllowImageChange[2] = false;
+    stateWaitForTimeout[2] = true;
+    stateTransitionOnNoAmmo[2] = "Ready";
 };
 
-function M24RifleImage::getDebugText(%this, %obj, %slot)
-{
-    %props = %obj.getItemProps();
-    return "\c6chamber=" @ (%props.chamber == 1 ? "ready" : (%props.chamber == -1 ? "spent" : "empty")) @ " mag=" @ (isObject(%props.magazine) ? %props.magazine.count : "none") @ "\n";
-}
+// function M24RifleImage::getDebugText(%this, %obj, %slot)
+// {
+//     %props = %obj.getItemProps();
+//     return "\c6chamber=" @ (%props.chamber == 1 ? "ready" : (%props.chamber == -1 ? "spent" : "empty")) @ " mag=" @ (isObject(%props.magazine) ? %props.magazine.count : "none") @ "\n";
+// }
 
 function M24RifleImage::onLight(%this, %obj, %slot)
 {
@@ -91,13 +108,21 @@ function M24RifleImage::onLight(%this, %obj, %slot)
             messageClient(%obj.client, '', '\c6You don\'t have any magazines for this weapon.');
     }
 
+    if (isObject(%obj.client))
+        %obj.client.updateDetailedGunHelp();
+
     return 1;
 }
 
 function M24RifleImage::onTrigger(%this, %obj, %slot, %trigger, %state)
 {
-    if (%trigger == 4 && %state && %obj.getImageState(%slot) $= "Ready")
-        %obj.mountImage(M24RifleScopeImage, %slot);
+    if (%state && %obj.getImageState(%slot) $= "Ready")
+    {
+        if (%trigger == 0)
+            %obj.mountImage(M24RifleScopeImage, %slot);
+        else if (%trigger == 4)
+            %obj.setImageAmmo(%slot, true);
+    }
 
     return 0;
 }
@@ -110,27 +135,38 @@ function M24RifleImage::onCycle(%this, %obj, %slot)
 
     if (%props.chamber != 0)
     {
-        %obj.playThread(2, "shiftRight");
+        %obj.ejectShell(Bullet45Item, 1.95, %props.chamber == 2);
         %props.chamber = 0;
     }
 
     if (%props.magazine.count >= 1)
     {
-        %obj.playThread(3, "shiftLeft");
-
         %props.chamber = 1;
         %props.magazine.count--;
     }
     else if (isObject(%obj.client))
         messageClient(%client, '', "\c6There are no more cartridges left to load. Insert a magazine.");
+
+    %obj.setImageAmmo(%slot, false);
+
+    if (isObject(%obj.client))
+        %obj.client.updateDetailedGunHelp();
 }
 
 datablock ShapeBaseImageData(M24RifleScopeImage)
 {
+    className = "TimeSliceRayWeapon";
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/remmington700_sniper_scoped_v3.dts";
+
+    fireMuzzleVelocity = cf_muzzlevelocity_ms(790 * 1.5);
+	fireVelInheritFactor = 0.75;
+	fireGravity = cf_bulletdrop_grams(10);
+	fireHitExplosion = GunProjectile;
+
     item = M24RifleItem;
     armReady = 1;
 
+    speedScale = 0.2;
     eyeOffset = "0 0.175 -0.8";
 
     stateName[0] = "Activate";
@@ -139,12 +175,13 @@ datablock ShapeBaseImageData(M24RifleScopeImage)
     stateTransitionOnTimeout[0] = "CheckLoaded";
 
     stateName[1] = "Deactivate";
-    stateAllowImageChange[1] = false;
-    stateTimeoutValue[1] = 0.3;
-    stateTransitionOnTimeout[1] = "DeactivateDone";
+    stateScript[1] = "onDeactivateDone";
+    // stateAllowImageChange[1] = false;
+    // stateTimeoutValue[1] = 0.3;
+    // stateTransitionOnTimeout[1] = "DeactivateDone";
 
-    stateName[2] = "DeactivateDone";
-    stateScript[2] = "onDeactivateDone";
+    // stateName[2] = "DeactivateDone";
+    // stateScript[2] = "onDeactivateDone";
 
     stateName[3] = "CheckLoaded";
     stateAllowImageChange[3] = false;
@@ -157,6 +194,7 @@ datablock ShapeBaseImageData(M24RifleScopeImage)
 
     stateName[5] = "EmptyFire";
     stateScript[5] = "onEmptyFire";
+    stateSequence[5] = "Fire";
     stateAllowImageChange[5] = false;
     stateTimeoutValue[5] = 0.25;
     stateWaitForTimeout[5] = true;
@@ -168,6 +206,7 @@ datablock ShapeBaseImageData(M24RifleScopeImage)
 
     stateName[7] = "Fire";
     stateFire[7] = true;
+    stateSequence[7] = "Fire";
     stateScript[7] = "onFire";
     stateAllowImageChange[7] = false;
     stateTimeoutValue[7] = 0.25;
@@ -175,10 +214,10 @@ datablock ShapeBaseImageData(M24RifleScopeImage)
     stateTransitionOnTriggerUp[7] = "Empty";
 };
 
-function M24RifleScopeImage::getDebugText(%this, %obj, %slot)
-{
-    return M24RifleImage::getDebugText(%this, %obj, %slot);
-}
+// function M24RifleScopeImage::getDebugText(%this, %obj, %slot)
+// {
+//     return M24RifleImage::getDebugText(%this, %obj, %slot);
+// }
 
 function M24RifleScopeImage::onMount(%this, %obj, %slot)
 {
@@ -207,33 +246,130 @@ function M24RifleScopeImage::onEmptyFire(%this, %obj, %slot)
 function M24RifleScopeImage::onFire(%this, %obj, %slot)
 {
     %props = %obj.getItemProps();
-
-    if (%props.chamber != 1)
-        return; // shouldn't happen
+    %props.chamber = 2;
 
     %obj.playThread(2, "plant");
 
-    // fire bullet
-    %proj = new ScriptObject() {
-      class = "ProjectileRayCast";
-      superClass = "TimedRayCast";
-      position = %obj.getMuzzlePoint(0);
-      velocity = vectorScale(%obj.getMuzzleVector(%slot), cf_muzzlevelocity_ms(790 * (3/2)));
-      gravity = "0 0" SPC cf_bulletdrop_grams(10); // 7.62x51mm NATO
-      lifetime = 3;
-      mask = $TypeMasks::PlayerObjectType | $TypeMasks::FxBrickObjectType | $TypeMasks::TerrainObjectType;
-      exempt = %obj;
-      sourceObject = %obj;
-      sourceClient = %obj.client;
-      damage = 60;
-      damageType = $DamageType::Generic;
-      hitExplosion = GunProjectile;
-    };
-
-    MissionCleanup.add(%proj);
-    %proj.fire();
-
+    Parent::onFire(%this, %obj, %slot);
     serverPlay3D($SniperFireSound[getRandom(2)], %obj.getMuzzlePoint(%slot));
 
-    %props.chamber = -1;
+    if (isObject(%obj.client))
+        %obj.client.updateDetailedGunHelp();
+}
+
+function M24RifleScopeImage::damage(%this, %obj, %col, %position, %normal)
+{
+	if (%col.getRegion(%position, true) $= "head")
+	{
+		%damage = 360;
+		%damageType = $DamageType::M24RifleHeadshot;
+	}
+	else
+	{
+		%damage = 90;
+		%damageType = $DamageType::M24Rifle;
+	}
+
+	if (!$NoCrouchDamageBonus && %col.isCrouched())
+		%damage /= 2;
+
+	%col.damage(%obj, %position, %damage, %damageType);
+}
+
+function M24RifleImage::getGunHelp(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+
+	%props = %obj.getItemProps();
+
+	if (%props.chamber == 1)
+		return "Your gun is ready to fire. Tap right click to use the scope and then left click to fire it.";
+
+	if (isObject(%props.magazine))
+	{
+		if (%props.magazine.count < 1)
+			return "The magazine in your gun is empty. Press the light key to eject it.";
+
+		return "Your gun has a magazine inserted, but no bullet is chambered. Left click to operate the bolt-action and chamber the next bullet.";
+	}
+
+	%index = %obj.findMagazine(%this.item);
+
+	if (%index == -1)
+		return "You have no magazines for your gun. You need to get a magazine first.";
+
+	if (%index == -2)
+		return "All your magazines are empty. You need to get a non-empty magazine first.";
+
+	return "Your gun has no magazine inserted. Press the light key to insert whichever magazine you have with the most bullets.";
+}
+
+function M24RifleScopeImage::getGunHelp(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+
+	if (%props.chamber == 1)
+		return "Your gun is ready to fire. Left click to shoot. Right click to stop using the scope.";
+
+    return "No bullet is chambered in your gun. Stop using the scope first by tapping right click.";
+}
+
+function M24RifleImage::getDetailedGunHelp(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+
+	%kt_lmb = "Primary";
+	%kt_rmb = "Jet    ";
+	%kt_r   = "Light  ";
+
+	%at_fire     = "Scope          ";
+	%at_action   = "Operate Bolt   ";
+	%at_magazine = "Insert Magazine";
+
+	%ac_fire     = "\c7";
+	%ac_action   = "\c7";
+	%ac_magazine = "\c7";
+
+	if (isObject(%props.magazine))
+		%at_magazine = "Eject Magazine ";
+
+    if (%props.chamber == 1)
+        %ac_fire = "\c6";
+
+    if (%props.chamber == 2 || (%props.chamber == 0 && %props.magazine.count >= 1))
+        %ac_action = "\c6";
+
+	if (!isObject(%props.magazine) || %props.magazine.count < 1)
+        %ac_magazine = "\c6";
+
+	%text = "<just:right><font:consolas:16>";
+	%text = %text @ %ac_fire     @ %at_fire     @ "   " @ %kt_lmb @ " \n";
+	%text = %text @ %ac_action   @ %at_action   @ "   " @ %kt_rmb @ " \n";
+	%text = %text @ %ac_magazine @ %at_magazine @ "   " @ %kt_r   @ " \n";
+	return %text;
+}
+
+function M24RifleScopeImage::getDetailedGunHelp(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+
+	%kt_lmb = "Primary";
+	%kt_rmb = "Jet    ";
+
+	%at_fire     = "Dryfire        ";
+	%at_action   = "Unscope        ";
+
+	%ac_fire     = "\c7";
+	%ac_action   = "\c6";
+
+    if (%props.chamber == 1)
+    {
+        %at_fire = "Fire           ";
+        %ac_fire = "\c6";
+    }
+
+	%text = "<just:right><font:consolas:16>";
+	%text = %text @ %ac_fire     @ %at_fire     @ "   " @ %kt_lmb @ " \n";
+	%text = %text @ %ac_action   @ %at_action   @ "   " @ %kt_rmb @ " \n";
+	return %text;
 }

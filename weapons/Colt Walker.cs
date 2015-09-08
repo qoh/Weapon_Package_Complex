@@ -1,3 +1,12 @@
+addDamageType("ColtWalker",
+	'<bitmap:base/client/ui/ci/skull> %1',
+	'%2 <bitmap:base/client/ui/ci/skull> %1',
+	0.2, 1);
+addDamageType("ColtWalkerHeadshot",
+	'<bitmap:base/client/ui/ci/skull><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
+	'%2 <bitmap:base/client/ui/ci/skull><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
+	0.2, 1);
+
 datablock AudioProfile(ColtWalkerCockSound)
 {
 	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds_west/coltwalker/cock.wav";
@@ -41,11 +50,18 @@ datablock ItemData(ColtWalkerItem)
 
 datablock ShapeBaseImageData(ColtWalkerImage)
 {
+	className = "TimeSliceRayWeapon";
     shapeFile = "Add-Ons/Weapon_Gun/pistol.dts";
+
+	fireMuzzleVelocity = cf_muzzlevelocity_ms(340);
+	fireVelInheritFactor = 0.175;
+	fireGravity = cf_bulletdrop_grams(9);
+	fireHitExplosion = GunProjectile;
 
     item = ColtWalkerItem;
     armReady = true;
 	isRevolver = true;
+	speedScale = 0.7;
 
 	insertSound0 = ColtWalkerInsertSound;
 	numInsertSound = 1;
@@ -156,7 +172,7 @@ function ColtWalkerImage::onLight(%this, %obj, %slot)
 
 function ColtWalkerImage::onEmptyFire(%this, %obj, %slot)
 {
-    RevolverImage::onFire(%this, %obj, %slot);
+    RevolverImage::onEmptyFire(%this, %obj, %slot);
 }
 
 function ColtWalkerImage::onFire(%this, %obj, %slot)
@@ -167,4 +183,28 @@ function ColtWalkerImage::onFire(%this, %obj, %slot)
 function ColtWalkerImage::onEjectShell(%this, %obj, %slot)
 {
     RevolverImage::onEjectShell(%this, %obj, %slot);
+}
+
+function ColtWalkerImage::damage(%this, %obj, %col, %position, %normal)
+{
+	if (%col.getRegion(%position, true) $= "head")
+	{
+		%damage = 225;
+		%damageType = $DamageType::ColtWalkerHeadshot;
+	}
+	else
+	{
+		%damage = 75;
+		%damageType = $DamageType::ColtWalker;
+	}
+
+	if (!$NoCrouchDamageBonus && %col.isCrouched())
+		%damage /= 2;
+
+	%col.damage(%obj, %position, %damage, %damageType);
+}
+
+function ColtWalkerImage::getGunHelp(%this, %obj, %slot)
+{
+	return RevolverImage::getGunHelp(%this, %obj, %slot);
 }

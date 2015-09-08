@@ -2,7 +2,7 @@ function Player::takeMagazineProps(%this, %item)
 {
     %index = %this.findMagazine(%item);
 
-    if (%index == -1)
+    if (%index < 0)
         return 0;
 
     %props = %this.itemProps[%index];
@@ -23,7 +23,7 @@ function Player::giveMagazineProps(%this, %props)
             return;
         }
 
-        if (%this.client.discardEmptyMagazine == 1 && %this.findMagazine(%props.weapon) != -1)
+        if (%this.client.discardEmptyMagazine == 1 && %this.findMagazine(%props.weapon) >= 0)
         {
             %props.delete();
             return;
@@ -58,43 +58,21 @@ function Player::findMagazine(%this, %item)
     %maxTools = %this.getDataBlock().maxTools;
 
     %bestSlot = -1;
-    %bestCount = 0;
+    %bestCount = -1;
 
     for (%i = 0; %i < %maxTools; %i++)
     {
         %props = %this.getItemProps(%i);
 
-        // if (!isObject(%props))
-        // {
-        //     talk("-- no props");
-        //     continue;
-        // }
-        //
-        // if (%props.weapon $= "")
-        // {
-        //     talk("-- weapon is \"\"");
-        //     continue;
-        // }
-        //
-        // if (%props.weapon.getID() != %item)
-        // {
-        //     talk("-- not the right ammo type");
-        //     continue;
-        // }
-        //
-        // if (%props.count <= %bestCount)
-        // {
-        //     talk("-- count <= bestCount");
-        //     continue;
-        // }
-        //
-        // %bestSlot = %i;
-        // %bestCount = %props.count;
-
-        if (isObject(%props.weapon) && %props.weapon.getID() == %item && %props.count > %bestCount)
+        if (isObject(%props.weapon) && %props.weapon.getID() == %item)
         {
-            %bestSlot = %i;
-            %bestCount = %props.count;
+            if (%props.count > %bestCount)
+            {
+                %bestSlot = %i;
+                %bestCount = %props.count;
+            }
+            else if (%bestSlot == -1)
+                %bestSlot = -2;
         }
     }
 
@@ -164,7 +142,7 @@ datablock ItemData(MagazineItem_45ACP_x7)
 
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/items/colt_magazine.dts";
     iconName = "./assets/icons/colt_clip";
-    uiName = "M 12x .45 ACP";
+    uiName = "A: M1911";
 
     magSize = 12;
     magWeapon = Colt1911Item;
@@ -178,7 +156,7 @@ datablock ItemData(MagazineItem_M24A1 : MagazineItem_45ACP_x7)
 {
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/items/m1garand_clip.dts";
     iconName = "./assets/icons/m1garand_clip";
-    uiName = "M M24A1";
+    uiName = "A: M24";
 
     magSize = 5;
     magWeapon = M24RifleItem;
@@ -192,11 +170,11 @@ datablock ItemData(MagazineItem_45ACP_x20_SMG : MagazineItem_45ACP_x7)
 {
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/items/thompson_clip.dts";
     iconName = "./assets/icons/thompson_clip";
-    uiName = "M 20x .45 ACP";
+    uiName = "A: Thompson";
 
-    magSize = 20;
+    magSize = 50;
     magWeapon = ThompsonItem;
-    magType = "stick magazine";
+    magType = "drum magazine";
 
     cartName = ".45 ACP (11.43x23mm)";
     cartWeight = 15;
@@ -206,7 +184,7 @@ datablock ItemData(MagazineItem_3006_x8 : MagazineItem_45ACP_x7)
 {
     shapeFile = "./assets/shapes/items/m1garand_clip.dts";
     iconName = "./assets/icons/m1garand_clip";
-    uiName = "M 8x .30-06";
+    uiName = "A: Garand";
 
     magSize = 8;
     magWeapon = M1GarandItem;
