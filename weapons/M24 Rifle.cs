@@ -1,20 +1,20 @@
 datablock AudioProfile(SniperFire01Sound)
 {
-    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/sniper/Sniper_Fire01.wav";
+    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m24rifle/Sniper_Fire01.wav";
     description = AudioClose3D;
     preload = true;
 };
 
 datablock AudioProfile(SniperFire02Sound)
 {
-    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/sniper/Sniper_Fire02.wav";
+    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m24rifle/Sniper_Fire02.wav";
     description = AudioClose3D;
     preload = true;
 };
 
 datablock AudioProfile(SniperFire03Sound)
 {
-    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/sniper/Sniper_Fire03.wav";
+    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m24rifle/Sniper_Fire03.wav";
     description = AudioClose3D;
     preload = true;
 };
@@ -25,7 +25,7 @@ $SniperFireSound2 = SniperFire03Sound;
 
 datablock AudioProfile(SniperReloadSound)
 {
-    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/sniper/Sniper_Reload.wav";
+    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m24rifle/Sniper_Reload.wav";
     description = AudioClose3D;
     preload = true;
 };

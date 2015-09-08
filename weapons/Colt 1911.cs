@@ -1,34 +1,34 @@
 datablock AudioProfile(Colt1911FireSound)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m1911_fire.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/colt1911/fire.wav";
 	description = AudioClose3d;
 	preload = true;
 };
 
 datablock AudioProfile(Colt1911FireLastSound)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m1911_fireLast.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/colt1911/fire_last.wav";
 	description = AudioClose3d;
 	preload = true;
 };
 
 datablock AudioProfile(Colt1911SlidepullSound)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/pistol_slidepull.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/colt1911\slidepull.wav";
 	description = AudioClose3d;
 	preload = true;
 };
 
 datablock AudioProfile(Colt1911ClipInSound)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/pistol_clipin.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/colt1911\clipin.wav";
 	description = AudioClose3d;
 	preload = true;
 };
 
 datablock AudioProfile(Colt1911ClipOutSound)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/pistol_clipout.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/colt1911\clipout.wav";
 	description = AudioClose3d;
 	preload = true;
 };

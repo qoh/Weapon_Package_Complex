@@ -9,61 +9,61 @@ addDamageType("RevolverHeadshot",
 
 datablock AudioProfile(RevolverFireSound)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolverPistol.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver/fire.wav";
 	description = AudioClose3d;
 	preload = true;
 };
 datablock AudioProfile(RevolverCycleSound)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver_flick.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver/flick.wav";
 	description = AudioClose3d;
 	preload = true;
 };
 datablock AudioProfile(RevolverSpinSound1)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver_spin1.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver/spin1.wav";
 	description = AudioClose3d;
 	preload = true;
 };
 datablock AudioProfile(RevolverSpinSound2)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver_spin2.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver/spin2.wav";
 	description = AudioClose3d;
 	preload = true;
 };
 datablock AudioProfile(RevolverSpinSound3)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver_spin3.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver/spin3.wav";
 	description = AudioClose3d;
 	preload = true;
 };
 datablock AudioProfile(RevolverSpinSound4)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver_spin4.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver/spin4.wav";
 	description = AudioClose3d;
 	preload = true;
 };
 datablock AudioProfile(RevolverSpinSound5)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver_spin5.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver/spin5.wav";
 	description = AudioClose3d;
 	preload = true;
 };
 datablock AudioProfile(RevolverOpenSound)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver_open.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver/open.wav";
 	description = AudioClose3d;
 	preload = true;
 };
 datablock AudioProfile(RevolverCloseSound)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver_close.wav";
+	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver/close.wav";
 	description = AudioClose3d;
 	preload = true;
 };
 datablock AudioProfile(RevolverClickSound)
 {
-    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver_click.wav";
+    fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/revolver/click.wav";
     description = AudioClose3D;
     preload = true;
 };
