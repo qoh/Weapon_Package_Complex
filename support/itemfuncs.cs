@@ -29,7 +29,7 @@ function Player::addTool(%this, %data, %props)
 
     if (isObject(%this.client))
     {
-        messageClient(%this.client, 'MsgItemPickup', '', %i, %data);
+        messageClient(%this.client, 'MsgItemPickup', '', %i, %data, true);
 
         if (%this.currTool == %i)
             serverCmdUseTool(%this.client, %i);
@@ -46,7 +46,7 @@ function Player::removeTool(%this, %index, %ignoreProps)
         %this.itemProps[%index].delete();
 
     if (isObject(%this.client))
-        messageClient(%this.client, 'MsgItemPickup', '', %index, 0);
+        messageClient(%this.client, 'MsgItemPickup', '', %index, 0, true);
 
     if (%this.currTool == %index)
         %this.unMountImage(0);

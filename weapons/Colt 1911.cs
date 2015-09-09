@@ -261,9 +261,6 @@ function Colt1911Image::damage(%this, %obj, %col, %position, %normal)
 		%damageType = $DamageType::Colt1911;
 	}
 
-	if (!$NoCrouchDamageBonus && %col.isCrouched())
-		%damage /= 2;
-
 	%col.damage(%obj, %position, %damage, %damageType);
 }
 
