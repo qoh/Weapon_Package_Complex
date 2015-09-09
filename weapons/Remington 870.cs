@@ -74,8 +74,7 @@ datablock ShapeBaseImageData(Remington870Image)
 	fireHitExplosion = GunProjectile;
     fireCount = 8;
 	fireSpread = 11;
-	fireHitPlayerSFX = ComplexFleshImpactBulletSFX;
-	fireHitSFX = ComplexDefaultImpactBulletSFX;
+	fireHitOtherSFX = ComplexDefaultImpactBulletSFX;
 	fireRicSFX = ComplexRicSFX;
 	fireNearMissSFX = ComplexNearMissSFX;
 
@@ -241,6 +240,7 @@ function Remington870Image::damage(%this, %obj, %col, %position, %normal)
 	if (!$NoCrouchDamageBonus && %col.isCrouched())
 		%damage /= 2;
 
+	ComplexFleshImpactBulletSFX.playFrom(%position, %col);
 	%col.damage(%obj, %position, %damage, %damageType);
 }
 

@@ -1,3 +1,23 @@
+datablock AudioDescription(Audio3dUniform48)
+{
+    type = 2;
+    is3D = true;
+    referenceDistance = 48;
+    maxDistance = 96;
+    // referenceDistance = 0;
+    // maxDistance = 999999;
+};
+
+datablock AudioDescription(Audio3dUniform64)
+{
+    type = 2;
+    is3D = true;
+    referenceDistance = 64;
+    maxDistance = 128;
+    // referenceDistance = 1;
+    // maxDistance = 1000;
+};
+
 new ScriptObject(ComplexRicSFX)
 {
     class = "SFXEffect";

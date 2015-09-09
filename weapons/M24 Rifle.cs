@@ -188,8 +188,7 @@ datablock ShapeBaseImageData(M24RifleScopeImage)
 	fireVelInheritFactor = 0.75;
 	fireGravity = cf_bulletdrop_grams(10);
 	fireHitExplosion = GunProjectile;
-	fireHitPlayerSFX = ComplexFleshImpactBulletSFX;
-	fireHitSFX = ComplexDefaultImpactBulletSFX;
+	fireHitOtherSFX = ComplexDefaultImpactBulletSFX;
 	fireRicSFX = ComplexRicSFX;
 	fireNearMissSFX = ComplexNearMissSFX;
 
@@ -303,6 +302,8 @@ function M24RifleScopeImage::damage(%this, %obj, %col, %position, %normal)
 	}
 	else
 	{
+		ComplexFleshImpactBulletSFX.playFrom(%position, %col);
+		
 		%damage = 90;
 		%damageType = $DamageType::M24Rifle;
 	}

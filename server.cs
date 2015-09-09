@@ -1,3 +1,5 @@
+forceRequiredAddOn("Weapon_Gun");
+
 exec("./support/sfx.cs");
 exec("./support/imagetrigger.cs");
 exec("./support/itemprops.cs");
@@ -15,6 +17,7 @@ exec("./magazines.cs");
 exec("./bullets.cs");
 exec("./sounds.cs");
 exec("./damage.cs");
+exec("./misc/effects.cs");
 
 // temporary
 datablock PlayerData(DeathmatchPlayer : PlayerStandardArmor)
@@ -42,6 +45,7 @@ exec("./weapons/Colt Walker.cs");
 exec("./weapons/M1 Garand.cs");
 exec("./weapons/M24 Rifle.cs");
 exec("./weapons/Remington 870.cs");
+exec("./weapons/Micro Uzi.cs");
 
 function GameConnection::updateDetailedGunHelp(%this, %stop)
 {

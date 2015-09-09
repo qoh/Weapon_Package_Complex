@@ -45,10 +45,9 @@ datablock ShapeBaseImageData(M1GarandImage)
 
 	fireMuzzleVelocity = cf_muzzlevelocity_ms(853);
 	fireVelInheritFactor = 0.5;
-	fireGravity = cf_bulletdrop_grams(150);
+	fireGravity = cf_bulletdrop_grams(10);
 	fireHitExplosion = GunProjectile;
-	fireHitPlayerSFX = ComplexFleshImpactBulletSFX;
-	fireHitSFX = ComplexDefaultImpactBulletSFX;
+	fireHitOtherSFX = ComplexDefaultImpactBulletSFX;
 	fireRicSFX = ComplexRicSFX;
 	fireNearMissSFX = ComplexNearMissSFX;
 
@@ -223,12 +222,14 @@ function M1GarandImage::damage(%this, %obj, %col, %position, %normal)
 	if (%col.getRegion(%position, true) $= "head")
 	{
 		ComplexHeadshotSFX.playFrom(%position, %col);
-		
+
 		%damage = 90;
 		%damageType = $DamageType::M1GarandHeadshot;
 	}
 	else
 	{
+		ComplexFleshImpactBulletSFX.playFrom(%position, %col);
+
 		%damage = 30;
 		%damageType = $DamageType::M1Garand;
 	}

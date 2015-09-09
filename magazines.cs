@@ -194,6 +194,19 @@ datablock ItemData(MagazineItem_3006_x8 : MagazineItem_45ACP_x7)
     cartWeight = 12;
 };
 
+datablock ItemData(MagazineItem_MicroUzi : MagazineItem_45ACP_x7)
+{
+    shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/items/colt_magazine.dts";
+    uiName = "A: Micro Uzi";
+
+    magSize = 32;
+    magWeapon = MicroUziItem;
+    magType = "magazine";
+
+    cartName = "9×19mm Parabellum";
+    cartWeight = 15;
+};
+
 package MagazineStatsPackage
 {
     function serverCmdUseTool(%client, %slot)

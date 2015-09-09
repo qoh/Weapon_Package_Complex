@@ -182,10 +182,11 @@ function ProjectileRayCast::onCollision(%this, %col, %position, %normal)
     if (isObject(%this.hitSound))
         serverPlay3D(%this.hitSound, %position);
 
-    if (isObject(%this.hitPlayerSFX) && %isPlayer)
-        %this.hitPlayerSFX.playFrom(%position, %col);
-    else if (isObject(%this.hitSFX))
-        %this.hitSFX.playFrom(%position, %col);
+    // if (isObject(%this.hitPlayerSFX) && %isPlayer)
+    //     %this.hitPlayerSFX.playFrom(%position, %col);
+
+    if (isObject(%this.hitOtherSFX) && !%isPlayer)
+        %this.hitOtherSFX.playFrom(%position, %col);
 
     if (isObject(%this.ricSFX) && !%isPlayer && getRandom() < %this.ricChance)
         %this.ricSFX.playFrom(%position, %col);
