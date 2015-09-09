@@ -89,7 +89,7 @@ function TimedRayCast::step(%this, %i, %prevTime)
         %center = vectorScale(vectorAdd(%a, %b), 0.5);
         %length = vectorLen(%center);
 
-        initContainerRadiusSearch(%center, getMax(%length, 3), $TypeMasks::PlayerObjectType);
+        initContainerRadiusSearch(%center, %length + 5, $TypeMasks::PlayerObjectType);
 
         while (isObject(%obj = containerSearchNext()))
         {
