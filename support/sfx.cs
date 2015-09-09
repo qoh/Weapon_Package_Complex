@@ -75,6 +75,8 @@ function SFXEffect::onAdd(%this)
                 %handle = getSubStr(%field, %index + 1, strlen(%field));
                 %field = getSubStr(%field, 0, %index);
             }
+            else
+                %handle = "";
 
             if (!%isLayer[%field])
             {
@@ -185,8 +187,15 @@ function SFXEffect::onAdd(%this)
 
                 // Should probably getSafeVariableName the %name
                 %profileName = "__SFXEffect_AudioProfile_" @ %name @ "_" @ getSafeVariableName(%layerName) @ "_" @ getSafeVariableName(%sampleName);
-                eval("datablock AudioProfile(" @ %profileName @ "){fileName=%fileName;description=%description;preload=%preload;};");
                 %profile = nameToID(%profileName);
+
+                if (!isObject(%profile))
+                {
+                    %profileName = "__SFXEffect_AudioProfile_" @ getSafeVariableName(%fileName) @ "_" @ getSafeVariableName(%description.getName());
+                    echo("making " @ %profileName);
+                    eval("datablock AudioProfile(" @ %profileName @ "){fileName=%fileName;description=%description;preload=%preload;};");
+                    %profile = nameToID(%profileName);
+                }
 
                 if (!isObject(%profile))
                 {
@@ -208,7 +217,10 @@ function SFXEffect::playTo(%this, %client, %position, %source)
     %control = %client.getControlObject();
 
     if (!isObject(%control))
+    {
+        %client.debugSFX(%this, "not playing: no control object");
         return;
+    }
 
     %isSource = %client == %source;
     %distance = vectorDist(%position, %control.getPosition());
@@ -218,21 +230,27 @@ function SFXEffect::playTo(%this, %client, %position, %source)
         %layerName = %this.layerName[%i];
 
         if (%this.sampleCount[%layerName] < 1)
+        {
+            %client.debugSFX(%this, "not playing " @ %layerName @ ": no samples");
             continue;
+        }
 
         switch$ (%this.filterListener[%layerName])
         {
-            case "source": if (!%isSource) continue;
-            case "other": if (%isSource) continue;
+            case "source": if (!%isSource) { %client.debugSFX(%this, "not playing " @ %layerName @ ": filterListener"); continue; }
+            case "other": if (%isSource) { %client.debugSFX(%this, "not playing " @ %layerName @ ": filterListener"); continue; }
         }
 
-        if (!%isSource)
+        if (%this.filterDistanceMin[%layerName] !$= "" && %distance < %this.filterDistanceMin[%layerName])
         {
-            if (%this.filterDistanceMin[%layerName] !$= "" && %distance < %this.filterDistanceMin[%layerName])
-                continue;
+            %client.debugSFX(%this, "not playing " @ %layerName @ ": filterDistanceMin" SPC %distance);
+            continue;
+        }
 
-            if (%this.filterDistanceMax[%layerName] !$= "" && %distance > %this.filterDistanceMax[%layerName])
-                continue;
+        if (%this.filterDistanceMax[%layerName] !$= "" && %distance > %this.filterDistanceMax[%layerName])
+        {
+            %client.debugSFX(%this, "not playing " @ %layerName @ ": filterDistanceMax" SPC %distance);
+            continue;
         }
 
         %use2D = false;
@@ -251,7 +269,12 @@ function SFXEffect::playTo(%this, %client, %position, %source)
         %profile = %this.profile[%layerName, %sampleHandle];
 
         if (!isObject(%profile))
+        {
+            %client.debugSFX(%this, "not playing " @ %layerName @ ": invalid sample " @ %sampleHAndle);
             continue;
+        }
+
+        %client.debugSFX(%this, "playing " @ %layerName @ ": " @ %use2D SPC %sampleHandle);
 
         if (%use2D)
             %client.play2D(%profile);
@@ -274,4 +297,10 @@ function SFXEffect::playFrom(%this, %position, %object)
         return %this.play(%position, 0);
 
     return %this.play(%position, %object.getControllingClient());
+}
+
+function GameConnection::debugSFX(%this, %sfx, %text)
+{
+    if (%this.debugSFX || %this.debugSFX[%sfx.getName()])
+        messageClient(%this, '', "\c4debugSFX (" @ %sfx.getName() @ ")\c6: " @ %text);
 }

@@ -14,6 +14,7 @@ exec("./calculations.cs");
 exec("./magazines.cs");
 exec("./bullets.cs");
 exec("./sounds.cs");
+exec("./damage.cs");
 
 // temporary
 datablock PlayerData(DeathmatchPlayer : PlayerStandardArmor)

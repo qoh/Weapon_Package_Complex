@@ -47,18 +47,17 @@ function TimedRayCast::onEnd(%this)
     %this.delete();
 }
 
+function TimedRayCast::onMove(%this, %a, %b, %ray)
+{
+    if (isObject(%this.pathTracer))
+        %this.pathTracer.transformLine(%a, %b, 0.01);
+}
+
 function TimedRayCast::fire(%this)
 {
     %this.onStart();
     %this.step(0, $Sim::Time);
 }
-
-$color0 = "1 0 0";
-$color1 = "1 1 0";
-$color2 = "0 1 0";
-$color3 = "0 1 1";
-$color4 = "0 0 1";
-$color5 = "1 0 1";
 
 function TimedRayCast::step(%this, %i, %prevTime)
 {
@@ -66,12 +65,6 @@ function TimedRayCast::step(%this, %i, %prevTime)
 
     %a = %this.position;
     %b = vectorAdd(%a, vectorScale(%this.velocity, %dt));
-
-    if (isObject(%this.pathTracer))
-        %this.pathTracer.transformLine(%a, %b, 0.01);
-
-    // %shape = createShape(CylinderGlowShapeData, $color[%i % 6] SPC 1, 2000);
-    // %shape.transformLine(%a, %b, 0.1);
 
     %this.position = %b;
     %this.velocity = vectorAdd(%this.velocity, vectorScale(%this.gravity, %dt));
@@ -83,30 +76,14 @@ function TimedRayCast::step(%this, %i, %prevTime)
         %this.exempt, %this.exempt2, %this.exempt3,
         %this.exempt4, %this.exempt5, %this.exempt6);
 
-    // This REALLY shouldn't be here
-    if (isObject(%this.nearMissSFX))
+    if (%dt > 0)
     {
-        %center = vectorScale(vectorAdd(%a, %b), 0.5);
-        %length = vectorLen(%center);
+        if (%result)
+            %bb = getWords(%result, 1, 3);
+        else
+            %bb = %b;
 
-        initContainerRadiusSearch(%center, %length + 5, $TypeMasks::PlayerObjectType);
-
-        while (isObject(%obj = containerSearchNext()))
-        {
-            if (%obj == %this.exempt || %obj == firstWord(%result) || !isObject(%obj.client))
-                continue;
-
-            // VERY TODO: project %obj.position onto the line a -> b
-            // get the distance to this line
-            // use that instead.
-            %distance = vectorDist(%obj.getEyePoint(), %center);
-
-            if (%distance <= 5 && !%this.playedNearMissTo[%obj])
-            {
-                %this.playedNearMissTo[%obj] = true;
-                ComplexNearMissSFX.playTo(%obj.client, %center);
-            }
-        }
+        %this.onMove(%a, %bb, %result, %i);
     }
 
     if (%entered)
@@ -132,6 +109,57 @@ function TimedRayCast::step(%this, %i, %prevTime)
     }
 
     %this.schedule(%this.tickInterval, "step", %i + 1, $Sim::Time);
+}
+
+exec("Add-Ons/Weapon_RayGun/shapes/debug/init.cs");
+
+$color0 = "1 0 0";
+$color1 = "1 1 0";
+$color2 = "0 1 0";
+$color3 = "0 1 1";
+$color4 = "0 0 1";
+$color5 = "1 0 1";
+
+function ProjectileRayCast::onMove(%this, %a, %b, %ray, %i)
+{
+    // %shape = createShape(CylinderGlowShapeData, $color[%i % 6] SPC 1, 500);
+    // %shape.transformLine(%a, %b, 0.1);
+
+    %maxDist = 2.5;
+
+    if (isObject(%this.nearMissSFX))
+    {
+        %center = vectorScale(vectorAdd(%a, %b), 0.5);
+        %length = vectorLen(%center);
+
+        initContainerRadiusSearch(%center, %length + %maxDist * 32, $TypeMasks::PlayerObjectType);
+
+        while (isObject(%obj = containerSearchNext()))
+        {
+            if (%obj == %this.exempt || %obj == firstWord(%ray) || !isObject(%obj.client))
+                continue;
+
+            %p = %obj.getEyePoint();
+            %ab = vectorSub(%b, %a);
+            %ap = vectorSub(%p, %a);
+
+            %project = vectorDot(%ap, %ab) / vectorDot(%ab, %ab);
+
+            if (%project < 0 || %project > 1)
+                continue;
+
+            %j = vectorAdd(%a, vectorScale(%ab, %project));
+            %distance = vectorDist(%p, %j);
+
+            // %shape = createShape(CylinderGlowShapeData, %distance <= %maxDist ? "1 1 1 1" : "0 0 0 1", 4000);
+            // %shape.transformLine(%p, %j, 0.1);
+
+            if (%distance <= %maxDist)
+                ComplexNearMissSFX.playTo(%obj.client, %center);
+        }
+    }
+
+    Parent::onMove(%this, %a, %b, %ray);
 }
 
 function ProjectileRayCast::onCollision(%this, %col, %position, %normal)

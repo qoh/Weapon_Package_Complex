@@ -61,6 +61,10 @@ datablock ShapeBaseImageData(ThompsonImage)
 	fireGravity = cf_bulletdrop_grams(15);
 	fireHitExplosion = GunProjectile;
 	fireSpread = 2.5;
+	fireHitPlayerSFX = ComplexFleshImpactBulletSFX;
+	fireHitSFX = ComplexDefaultImpactBulletSFX;
+	fireRicSFX = ComplexRicSFX;
+	fireNearMissSFX = ComplexNearMissSFX;
 
     stateName[0] = "Activate";
 	stateSequence[0] = "activate";
@@ -239,6 +243,8 @@ function ThompsonImage::damage(%this, %obj, %col, %position, %normal)
 {
 	if (%col.getRegion(%position, true) $= "head")
 	{
+		ComplexHeadshotSFX.playFrom(%position, %col);
+		
 		%damage = 12;
 		%damageType = $DamageType::ThompsonHeadshot;
 	}

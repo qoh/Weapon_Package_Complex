@@ -57,6 +57,10 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 	fireVelInheritFactor = 0.175;
 	fireGravity = cf_bulletdrop_grams(9);
 	fireHitExplosion = GunProjectile;
+	fireHitPlayerSFX = ComplexFleshImpactBulletSFX;
+	fireHitSFX = ComplexDefaultImpactBulletSFX;
+	fireRicSFX = ComplexRicSFX;
+	fireNearMissSFX = ComplexNearMissSFX;
 
 	item = ColtWalkerItem;
 	armReady = true;
@@ -232,6 +236,8 @@ function ColtWalkerImage::damage(%this, %obj, %col, %position, %normal)
 {
 	if (%col.getRegion(%position, true) $= "head")
 	{
+		ComplexHeadshotSFX.playFrom(%position, %col);
+		
 		%damage = 225;
 		%damageType = $DamageType::ColtWalkerHeadshot;
 	}

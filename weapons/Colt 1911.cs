@@ -250,7 +250,7 @@ function Colt1911Image::damage(%this, %obj, %col, %position, %normal)
 	if (%col.getRegion(%position, true) $= "head")
 	{
 		ComplexHeadshotSFX.playFrom(%position, %col);
-		
+
 		%damage = 32;
 		%damageType = $DamageType::Colt1911Headshot;
 	}

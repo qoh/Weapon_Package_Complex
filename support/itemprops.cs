@@ -216,6 +216,28 @@ package ItemPropsPackage
 
         Parent::serverCmdUseTool(%client, %index);
     }
+
+    function MiniGameSO::forceEquip(%this, %slot)
+    {
+        for (%i = 0; %i < %this.numMembers; %i++)
+        {
+            %player = %this.member[%i].player;
+
+            if (!isObject(%player))
+                continue;
+
+            if (%player.tool[%slot] != %this.startEquip[%slot])
+            {
+                if (isObject(%player.itemProps[%slot]))
+                    %player.itemProps[%slot].delete();
+
+                if (%this.startEquip[%slot].itemPropsAlways)
+                    %player.itemProps[%slot] = %this.startEquip[%slot].newItemProps(%player, %slot);
+            }
+        }
+
+        Parent::forceEquip(%this, %slot);
+    }
 };
 
 activatePackage("ItemPropsPackage");

@@ -3,6 +3,30 @@ addDamageType("Remington870",
 	'%2 <bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_remmington> %1',
 	0.2, 1);
 
+new ScriptObject(Remington870FireSFX)
+{
+	class = "SFXEffect";
+
+    file["close", 1] = "Add-Ons/Weapon_Package_Complex/assets/sounds/remington870/fire.wav";
+    filterDistanceMax["close"] = 48;
+    use2D["close"] = "source";
+
+    file["far", 1] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/distant/far/fire_shotgun.0.wav";
+    file["far", 2] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/distant/far/fire_shotgun.1.wav";
+    file["far", 3] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/distant/far/fire_shotgun.2.wav";
+    file["far", 4] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/distant/far/fire_shotgun.3.wav";
+    filterDistanceMin["far"] = 48;
+	filterDistanceMax["far"] = 128;
+    use2D["far"] = "always";
+
+	file["very_far", 1] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/distant/very_far/fire_shotgun.0.wav";
+    file["very_far", 2] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/distant/very_far/fire_shotgun.1.wav";
+    file["very_far", 3] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/distant/very_far/fire_shotgun.2.wav";
+    filterDistanceMin["very_far"] = 128;
+	filterDistanceMax["very_far"] = 1024;
+    use2D["very_far"] = "always";
+};
+
 datablock AudioProfile(Remington870FireSound)
 {
     fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/remington870/fire.wav";
@@ -50,6 +74,10 @@ datablock ShapeBaseImageData(Remington870Image)
 	fireHitExplosion = GunProjectile;
     fireCount = 8;
 	fireSpread = 11;
+	fireHitPlayerSFX = ComplexFleshImpactBulletSFX;
+	fireHitSFX = ComplexDefaultImpactBulletSFX;
+	fireRicSFX = ComplexRicSFX;
+	fireNearMissSFX = ComplexNearMissSFX;
 
     item = Remington870Item;
     armReady = true;
@@ -80,7 +108,8 @@ datablock ShapeBaseImageData(Remington870Image)
 
     stateName[4] = "Fire";
     stateFire[4] = true;
-    stateSound[4] = Remington870FireSound;
+    // stateSound[4] = Remington870FireSound;
+	stateSound[4] = "";
     stateScript[4] = "onFire";
     stateSequence[4] = "Fire";
     stateEmitter[4] = advSmallBulletFireEmitter;
@@ -133,6 +162,7 @@ function Remington870Image::onFire(%this, %obj, %slot)
     %props = %obj.getItemProps();
 
     Parent::onFire(%this, %obj, %slot);
+	Remington870FireSFX.playFrom(%obj.getMuzzlePoint(%slot), %obj);
 
     %obj.playThread(2, "shiftLeft");
     %obj.playThread(3, "shiftRight");

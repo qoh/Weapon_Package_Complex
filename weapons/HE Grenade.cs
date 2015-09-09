@@ -286,12 +286,17 @@ function HEGrenadeProps::onOwnerChange(%this, %owner)
 
     Parent::onOwnerChange(%this, %owner);
 
-    if (%owner.getType() & ($TypeMasks::PlayerObjectType))
-    {
-        %this.damagePlayer = %owner;
+    %isPlayerOwner = %owner.getType() & ($TypeMasks::PlayerObjectType);
 
-        if (isObject(%owner.client))
-            %this.damageClient = %owner.client;
+    if (%isPlayerOwner)
+        %this.lastOwningPlayer = %owner;
+
+    if (%this.damagePlayer $= "" || (!%isPlayerOwner && isObject(%this.lastOwningPlayer)))
+    {
+        %this.damagePlayer = %this.lastOwningPlayer;
+
+        if (isObject(%this.lastOwningPlayer.client))
+            %this.damageClient = %this.lastOwningPlayer.client;
     }
 
     if (%time !$= "")
@@ -311,7 +316,7 @@ function HEGrenadeProps::startSchedule(%this, %time)
 
 function HEGrenadeProps::beep(%this)
 {
-    serverPlay3D(HEGrenadeBeepSound, %this.owner.getPosition());
+    // serverPlay3D(HEGrenadeBeepSound, %this.owner.getPosition());
 }
 
 function spawnHEGrenadeExplosion(%position, %object, %damagePlayer, %damageClient)

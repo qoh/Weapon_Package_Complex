@@ -94,6 +94,10 @@ datablock ShapeBaseImageData(RevolverImage)
 	fireVelInheritFactor = 0.25;
 	fireGravity = cf_bulletdrop_grams(10);
 	fireHitExplosion = GunProjectile;
+	fireHitPlayerSFX = ComplexFleshImpactBulletSFX;
+	fireHitSFX = ComplexDefaultImpactBulletSFX;
+	fireRicSFX = ComplexRicSFX;
+	fireNearMissSFX = ComplexNearMissSFX;
 
 	item = RevolverItem;
 	armReady = true;
@@ -351,6 +355,8 @@ function RevolverImage::damage(%this, %obj, %col, %position, %normal)
 {
 	if (%col.getRegion(%position, true) $= "head")
 	{
+		ComplexHeadshotSFX.playFrom(%position, %col);
+		
 		%damage = 75;
 		%damageType = $DamageType::RevolverHeadshot;
 	}

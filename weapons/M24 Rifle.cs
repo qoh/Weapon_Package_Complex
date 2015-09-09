@@ -7,30 +7,56 @@ addDamageType("M24RifleHeadshot",
 	'%2 <bitmap:base/client/ui/ci/skull><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
 	0.2, 1);
 
-datablock AudioProfile(SniperFire1Sound)
-{
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m24rifle/fire1.wav";
-	description = AudioClose3D;
-	preload = true;
-};
+// datablock AudioProfile(SniperFire1Sound)
+// {
+// 	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m24rifle/fire1.wav";
+// 	description = AudioClose3D;
+// 	preload = true;
+// };
+//
+// datablock AudioProfile(SniperFire2Sound)
+// {
+// 	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m24rifle/fire2.wav";
+// 	description = AudioClose3D;
+// 	preload = true;
+// };
+//
+// datablock AudioProfile(SniperFire3Sound)
+// {
+// 	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m24rifle/fire3.wav";
+// 	description = AudioClose3D;
+// 	preload = true;
+// };
+//
+// $SniperFireSound0 = SniperFire1Sound;
+// $SniperFireSound1 = SniperFire2Sound;
+// $SniperFireSound2 = SniperFire3Sound;
 
-datablock AudioProfile(SniperFire2Sound)
+new ScriptObject(M24RifleFireSFX)
 {
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m24rifle/fire2.wav";
-	description = AudioClose3D;
-	preload = true;
-};
+	class = "SFXEffect";
 
-datablock AudioProfile(SniperFire3Sound)
-{
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds/m24rifle/fire3.wav";
-	description = AudioClose3D;
-	preload = true;
-};
+    file["close", 1] = "Add-Ons/Weapon_Package_Complex/assets/sounds/m24rifle/fire1.wav";
+    file["close", 2] = "Add-Ons/Weapon_Package_Complex/assets/sounds/m24rifle/fire2.wav";
+    file["close", 3] = "Add-Ons/Weapon_Package_Complex/assets/sounds/m24rifle/fire3.wav";
+    filterDistanceMax["close"] = 48;
+    use2D["close"] = "source";
 
-$SniperFireSound0 = SniperFire1Sound;
-$SniperFireSound1 = SniperFire2Sound;
-$SniperFireSound2 = SniperFire3Sound;
+    file["far", 1] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/distant/far/fire_sniper.0.wav";
+    file["far", 2] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/distant/far/fire_sniper.1.wav";
+    file["far", 3] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/distant/far/fire_sniper.2.wav";
+    file["far", 4] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/distant/far/fire_sniper.3.wav";
+    filterDistanceMin["far"] = 48;
+	filterDistanceMax["far"] = 128;
+    use2D["far"] = "always";
+
+	file["very_far", 1] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/distant/very_far/fire_sniper.0.wav";
+    file["very_far", 2] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/distant/very_far/fire_sniper.1.wav";
+    file["very_far", 3] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/distant/very_far/fire_sniper.2.wav";
+    filterDistanceMin["very_far"] = 128;
+	filterDistanceMax["very_far"] = 1024;
+    use2D["very_far"] = "always";
+};
 
 datablock AudioProfile(SniperReloadSound)
 {
@@ -162,6 +188,10 @@ datablock ShapeBaseImageData(M24RifleScopeImage)
 	fireVelInheritFactor = 0.75;
 	fireGravity = cf_bulletdrop_grams(10);
 	fireHitExplosion = GunProjectile;
+	fireHitPlayerSFX = ComplexFleshImpactBulletSFX;
+	fireHitSFX = ComplexDefaultImpactBulletSFX;
+	fireRicSFX = ComplexRicSFX;
+	fireNearMissSFX = ComplexNearMissSFX;
 
 	item = M24RifleItem;
 	armReady = 1;
@@ -255,7 +285,8 @@ function M24RifleScopeImage::onFire(%this, %obj, %slot)
 	%obj.playThread(3, "shiftRight");
 
 	Parent::onFire(%this, %obj, %slot);
-	serverPlay3D($SniperFireSound[getRandom(2)], %obj.getMuzzlePoint(%slot));
+	// serverPlay3D($SniperFireSound[getRandom(2)], %obj.getMuzzlePoint(%slot));
+	M24RifleFireSFX.playFrom(%obj.getMuzzlePoint(%slot), %obj);
 
 	if (isObject(%obj.client))
 		%obj.client.updateDetailedGunHelp();
@@ -265,6 +296,8 @@ function M24RifleScopeImage::damage(%this, %obj, %col, %position, %normal)
 {
 	if (%col.getRegion(%position, true) $= "head")
 	{
+		ComplexHeadshotSFX.playFrom(%position, %col);
+
 		%damage = 360;
 		%damageType = $DamageType::M24RifleHeadshot;
 	}

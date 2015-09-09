@@ -45,11 +45,11 @@ new ScriptObject(ComplexFleshImpactBulletSFX)
 {
     class = "SFXEffect";
 
-    file[main, 1] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/impact/default_impact_flesh1.wav";
-    file[main, 2] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/impact/default_impact_flesh2.wav";
-    file[main, 3] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/impact/default_impact_flesh3.wav";
-    file[main, 4] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/impact/default_impact_flesh4.wav";
-    file[main, 5] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/impact/default_impact_flesh5.wav";
+    file[main, 1] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/impact/flesh_impact_bullet1.wav";
+    file[main, 2] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/impact/flesh_impact_bullet2.wav";
+    file[main, 3] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/impact/flesh_impact_bullet3.wav";
+    file[main, 4] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/impact/flesh_impact_bullet4.wav";
+    file[main, 5] = "Add-Ons/Weapon_Package_Complex/assets/sounds/general/impact/flesh_impact_bullet5.wav";
 };
 
 datablock AudioProfile(ComplexBoltSound)
