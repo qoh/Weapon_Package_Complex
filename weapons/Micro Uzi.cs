@@ -183,6 +183,9 @@ function MicroUziImage::onFire(%this, %obj, %slot)
 		%obj.schedule(50, playAudio, 2, ComplexClipEmptyPistolSound);
 
 	%this.action(%obj, %slot);
+
+	%obj.applyComplexKnockback(0.5);
+	%obj.applyComplexScreenshake(0.5);
 }
 
 function MicroUziImage::onReload(%this, %obj, %slot)

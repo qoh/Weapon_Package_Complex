@@ -93,6 +93,7 @@ datablock ShapeBaseImageData(RevolverImage)
 	fireMuzzleVelocity = cf_muzzlevelocity_ms(396.24);
 	fireVelInheritFactor = 0.25;
 	fireGravity = cf_bulletdrop_grams(10);
+	fireSpread = 0.4;
 	fireHitExplosion = GunProjectile;
 	fireHitOtherSFX = ComplexDefaultImpactBulletSFX;
 	fireRicSFX = ComplexRicSFX;
@@ -308,25 +309,6 @@ function RevolverImage::onFire(%this, %obj, %slot)
 		return;
 
 	Parent::onFire(%this, %obj, %slot);
-	// %proj = new ScriptObject()
-	// {
-	// 	class = "ProjectileRayCast";
-	// 	superClass = "TimedRayCast";
-	// 	position = %obj.getMuzzlePoint(0);
-	// 	velocity = vectorScale(%obj.getMuzzleVector(%slot), cf_muzzlevelocity_ms(251));
-	// 	gravity = "0 0" SPC cf_bulletdrop_grams(15);
-	// 	lifetime = 3;
-	// 	mask = $TypeMasks::PlayerObjectType | $TypeMasks::FxBrickObjectType | $TypeMasks::TerrainObjectType;
-	// 	exempt = %obj;
-	// 	sourceObject = %obj;
-	// 	sourceClient = %obj.client;
-	// 	damage = 16;
-	// 	damageType = $DamageType::Generic;
-	// 	hitExplosion = GunProjectile;
-	// };
-	//
-	// MissionCleanup.add(%proj);
-	// %proj.fire();
 
 	%props = %obj.getItemProps();
 	%props.slot[%props.currSlot] = 2;
@@ -334,6 +316,9 @@ function RevolverImage::onFire(%this, %obj, %slot)
 
 	%obj.playThread(2, "shiftLeft");
 	%obj.playThread(3, "shiftRight");
+
+	%obj.applyComplexKnockback(1.75);
+	%obj.applyComplexScreenshake(1);
 }
 
 function RevolverImage::onEjectShell(%this, %obj, %slot)

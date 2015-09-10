@@ -56,6 +56,7 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 	fireMuzzleVelocity = cf_muzzlevelocity_ms(340);
 	fireVelInheritFactor = 0.175;
 	fireGravity = cf_bulletdrop_grams(9);
+	fireSpread = 0.5;
 	fireHitExplosion = GunProjectile;
 	fireHitOtherSFX = ComplexDefaultImpactBulletSFX;
 	fireRicSFX = ComplexRicSFX;
@@ -224,6 +225,9 @@ function ColtWalkerImage::onFire(%this, %obj, %slot)
 
 	%obj.playThread(2, "shiftAway");
 	%obj.schedule(100, playThread, 3, "plant");
+
+	%obj.applyComplexKnockback(2.5);
+	%obj.applyComplexScreenshake(2);
 }
 
 function ColtWalkerImage::onEjectShell(%this, %obj, %slot)

@@ -47,6 +47,43 @@ exec("./weapons/M24 Rifle.cs");
 exec("./weapons/Remington 870.cs");
 exec("./weapons/Micro Uzi.cs");
 
+function SimObject::getYaw(%this) {
+	%vector = %this.getForwardVector();
+	return mATan(getWord(%vector, 0), getWord(%vector, 1));
+}
+
+function SimObject::getPitch(%this) {
+	%vector = %this.getMuzzleVector(0);
+
+	%x = getWord(%vector, 0);
+	%y = getWord(%vector, 1);
+	%z = getWord(%vector, 2);
+
+	return mATan(%z, mSqrt(%x * %x + %y * %y));
+}
+
+function Player::applyComplexKnockback(%this, %h)
+{
+	%v = %this.getMuzzleVector(0);
+	%this.addVelocity(vectorScale(setWord(%v, 2, -1), -%h));
+}
+
+function Player::applyComplexScreenshake(%this, %h)
+{
+	%projectile = new Projectile()
+	{
+		datablock = ScreenShakeProjectile;
+
+		initialPosition = %this.getEyePoint();
+		initialVelocity = "0 0 0";
+	};
+
+	MissionCleanup.add(%projectile);
+
+	%projectile.setScale("1 1" SPC %h);
+	%projectile.explode();
+}
+
 function GameConnection::updateDetailedGunHelp(%this, %stop)
 {
 	%player = %this.player;

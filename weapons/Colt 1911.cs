@@ -72,7 +72,8 @@ datablock ShapeBaseImageData(Colt1911Image)
 	fireMuzzleVelocity = cf_muzzlevelocity_ms(251);
 	fireVelInheritFactor = 0.25;
 	fireGravity = cf_bulletdrop_grams(15);
-	fireHitExplosion = GunProjectile;
+	fireSpread = 0.4;
+	fireHitExplosion = QuietGunProjectile;
 	fireHitOtherSFX = ComplexDefaultImpactBulletSFX;
 	fireRicSFX = ComplexRicSFX;
 	fireNearMissSFX = ComplexNearMissSFX;
@@ -170,6 +171,9 @@ function Colt1911Image::onFire(%this, %obj, %slot)
         serverPlay3D(Colt1911FireLastSound, %obj.getMuzzlePoint(%slot));
 
 	%this.pullSlide(%obj, %slot);
+
+	%obj.applyComplexKnockback(0.5);
+	%obj.applyComplexScreenshake(0.4);
 }
 
 function Colt1911Image::onReload(%this, %obj, %slot)
