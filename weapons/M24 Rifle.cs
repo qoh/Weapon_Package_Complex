@@ -289,6 +289,9 @@ function M24RifleScopeImage::onFire(%this, %obj, %slot)
 
 	if (isObject(%obj.client))
 		%obj.client.updateDetailedGunHelp();
+
+	%obj.applyComplexKnockback(5);
+	%obj.applyComplexScreenshake(2.5);
 }
 
 function M24RifleScopeImage::damage(%this, %obj, %col, %position, %normal)
@@ -303,7 +306,7 @@ function M24RifleScopeImage::damage(%this, %obj, %col, %position, %normal)
 	else
 	{
 		ComplexFleshImpactBulletSFX.playFrom(%position, %col);
-		
+
 		%damage = 90;
 		%damageType = $DamageType::M24Rifle;
 	}

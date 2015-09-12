@@ -171,6 +171,9 @@ function ThompsonImage::onFire(%this, %obj, %slot)
 	}
 
 	%this.pullSlide(%obj, %slot);
+
+	%obj.applyComplexKnockback(0.5);
+	%obj.applyComplexScreenshake(0.5);
 }
 
 function ThompsonImage::onReload(%this, %obj, %slot)

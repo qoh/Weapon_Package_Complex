@@ -73,7 +73,8 @@ datablock ShapeBaseImageData(Remington870Image)
 	fireGravity = cf_bulletdrop_grams(25);
 	fireHitExplosion = GunProjectile;
     fireCount = 8;
-	fireSpread = 11;
+	// fireSpread = 11;
+	fireSpread = 9;
 	fireHitOtherSFX = ComplexDefaultImpactBulletSFX;
 	fireRicSFX = ComplexRicSFX;
 	fireNearMissSFX = ComplexNearMissSFX;
@@ -171,6 +172,9 @@ function Remington870Image::onFire(%this, %obj, %slot)
 
 	if (isObject(%obj.client))
 		%obj.client.updateDetailedGunHelp();
+
+	%obj.applyComplexKnockback(3);
+	%obj.applyComplexScreenshake(0.6);
 }
 
 function Remington870Image::onPump(%this, %obj, %slot)

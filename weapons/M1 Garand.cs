@@ -46,6 +46,7 @@ datablock ShapeBaseImageData(M1GarandImage)
 	fireMuzzleVelocity = cf_muzzlevelocity_ms(853);
 	fireVelInheritFactor = 0.5;
 	fireGravity = cf_bulletdrop_grams(10);
+	fireSpread = 0.02;
 	fireHitExplosion = GunProjectile;
 	fireHitOtherSFX = ComplexDefaultImpactBulletSFX;
 	fireRicSFX = ComplexRicSFX;
@@ -143,6 +144,9 @@ function M1GarandImage::onFire(%this, %obj, %slot)
 		serverPlay3D(M1GarandFireLastSound, %obj.getMuzzlePoint(%slot));
 
 	%this.pullSlide(%obj, %slot);
+
+	%obj.applyComplexKnockback(3.4);
+	%obj.applyComplexScreenshake(1);
 }
 
 function M1GarandImage::onReload(%this, %obj, %slot)
