@@ -138,11 +138,11 @@ function ThompsonImage::onEmptyFire(%this, %obj, %slot)
 {
 	%props = %obj.getItemProps();
 
-	if (%props.magazine.count >= 1)
-	{
-		%obj.setImageAmmo(%slot, true);
-		return;
-	}
+	// if (%props.magazine.count >= 1)
+	// {
+	// 	%obj.setImageAmmo(%slot, true);
+	// 	return;
+	// }
 
 	serverPlay3D(RevolverClickSound, %obj.getMuzzlePoint(%slot));
 }
