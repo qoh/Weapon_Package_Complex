@@ -71,7 +71,7 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 	numInsertSound = 1;
 
 	stateName[0] = "Activate";
-	stateTimeoutValue[0] = 0.15;
+	stateTimeoutValue[0] = 0.4;
 	stateAllowImageChange[0] = false;
 	stateTransitionOnTimeout[0] = "CheckChamber";
 
@@ -83,7 +83,7 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 	stateName[3] = "EmptyFire";
 	stateSound[3] = RevolverClickSound;
 	stateScript[3] = "onEmptyFire";
-	stateTimeoutValue[3] = 0.13;
+	stateTimeoutValue[3] = 0.2;
 	stateWaitForTimeout[3] = true;
 	stateAllowImageChange[3] = false;
 	stateTransitionOnTriggerUp[3] = "CheckChamber";
@@ -102,16 +102,16 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 	stateEmitter[5] = advBigBulletFireEmitter;
 	stateEmitterTime[5] = 0.1;
 	stateEmitterNode[5] = "muzzleNode";
-	stateTimeoutValue[5] = 0.1;
+	stateTimeoutValue[5] = 0.2;
 	stateWaitForTimeout[5] = true;
 	stateAllowImageChange[5] = false;
 	stateTransitionOnTimeout[5] = "Smoke";
 
 	stateName[6] = "Smoke";
 	stateEmitter[6] = advBigBulletSmokeEmitter;
-	stateEmitterTime[6] = 0.1;
+	stateEmitterTime[6] = 0.3;
 	stateEmitterNode[6] = "muzzleNode";
-	stateTimeoutValue[6] = 0.2;
+	stateTimeoutValue[6] = 0.3;
 	stateWaitForTimeout[6] = true;
 	stateAllowImageChange[6] = false;
 	stateTransitionOnTimeout[6] = "CheckTrigger"; //Alright, delay passed, let's check if the dude released the trigger yet
@@ -123,7 +123,7 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 	stateName[8] = "Cock";
 	stateSound[8] = ColtWalkerCockSound;
 	stateSequence[8] = "Clickdown";
-	stateTimeoutValue[8] = 0.3;
+	stateTimeoutValue[8] = 0.5;
 	stateAllowImageChange[8] = false;
 	stateWaitForTimeout[8] = true;
 	stateTransitionOnTriggerUp[8] = "CheckChamber";
@@ -131,7 +131,7 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 	stateName[9] = "Opening";
 	stateLoadedFlag[9] = "NotLoaded"; // doesn't seem to work
 	stateSequence[9] = "Openchamber";
-	stateTimeoutValue[9] = 0.25;
+	stateTimeoutValue[9] = 0.4;
 	stateAllowImageChange[9] = false;
 	stateTransitionOnTimeout[9] = "Opened";
 	stateScript[9] = "onOpening";
@@ -142,7 +142,7 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 
 	stateName[11] = "Closing";
 	stateSequence[11] = "Closechamber";
-	stateTimeoutValue[11] = 0.25;
+	stateTimeoutValue[11] = 0.4;
 	stateAllowImageChange[11] = false;
 	stateTransitionOnTimeout[11] = "HammerUp";
 	stateScript[11] = "onClosing";
@@ -155,7 +155,7 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 	stateName[13] = "EjectShell";
 	stateScript[13] = "onEjectShell";
 	stateSequence[13] = "EjectShell";
-	stateTimeoutValue[13] = 0.1;
+	stateTimeoutValue[13] = 0.2;
 	stateTransitionOnTimeout[13] = "ShellCheck";
 
 	stateName[19] = "CheckTrigger";

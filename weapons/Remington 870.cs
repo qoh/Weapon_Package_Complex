@@ -74,7 +74,7 @@ datablock ShapeBaseImageData(Remington870Image)
 	fireHitExplosion = GunProjectile;
     fireCount = 8;
 	// fireSpread = 11;
-	fireSpread = 9;
+	fireSpread = 7;
 	fireHitOtherSFX = ComplexDefaultImpactBulletSFX;
 	fireRicSFX = ComplexRicSFX;
 	fireNearMissSFX = ComplexNearMissSFX;
@@ -115,21 +115,21 @@ datablock ShapeBaseImageData(Remington870Image)
     stateEmitter[4] = advSmallBulletFireEmitter;
 	stateEmitterTime[4] = 0.05;
 	stateEmitterNode[4] = "muzzleNode";
-    stateTimeoutValue[4] = 0.12;
+    stateTimeoutValue[4] = 0.15;
     stateTransitionOnTimeout[4] = "Smoke";
 
     stateName[5] = "Smoke";
     stateEmitter[5] = advSmallBulletSmokeEmitter;
 	stateEmitterTime[5] = 0.05;
 	stateEmitterNode[5] = "muzzleNode";
-    stateTimeoutValue[5] = 0.1;
+    stateTimeoutValue[5] = 0.15;
     stateTransitionOnTriggerUp[5] = "Empty";
 
     stateName[6] = "Pump";
     stateSound[6] = Remington870PumpSound;
     stateScript[6] = "onPump";
     stateSequence[6] = "Pump";
-    stateTimeoutValue[6] = 0.3; // 0.2
+    stateTimeoutValue[6] = 0.35; // 0.2
     stateWaitForTimeout[6] = true;
     stateTransitionOnNoAmmo[6] = "Empty";
 };
