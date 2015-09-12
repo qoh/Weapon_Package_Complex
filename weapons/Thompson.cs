@@ -23,7 +23,7 @@ datablock AudioProfile(ThompsonFireLastSound)
 
 datablock ItemData(ThompsonItem)
 {
-    shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/thompson_mg.dts";
+	shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/thompson.dts";
 	iconName = "Add-Ons/Weapon_Package_Complex/assets/icons/thompson";
 	rotate = false;
 	mass = 1;
@@ -32,11 +32,11 @@ datablock ItemData(ThompsonItem)
 	friction = 0.6;
 	emap = true;
 
-    canDrop = 1;
-    uiName = "Thompson";
-    image = ThompsonImage;
+	canDrop = 1;
+	uiName = "Thompson";
+	image = ThompsonImage;
 
-    itemPropsClass = "SimpleMagWeaponProps";
+	itemPropsClass = "SimpleMagWeaponProps";
 };
 
 function ThompsonItem::onAdd(%this, %obj)
@@ -50,10 +50,10 @@ function ThompsonItem::onAdd(%this, %obj)
 datablock ShapeBaseImageData(ThompsonImage)
 {
 	className = "TimeSliceRayWeapon";
-    shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/thompson_mg.dts";
+	shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/thompson.dts";
 
-    item = ThompsonItem;
-    armReady = 1;
+	item = ThompsonItem;
+	armReady = 1;
 	speedScale = 0.8;
 
 	fireMuzzleVelocity = cf_muzzlevelocity_ms(285);
@@ -65,50 +65,50 @@ datablock ShapeBaseImageData(ThompsonImage)
 	fireRicSFX = ComplexRicSFX;
 	fireNearMissSFX = ComplexNearMissSFX;
 
-    stateName[0] = "Activate";
+	stateName[0] = "Activate";
 	stateSequence[0] = "activate";
-    stateTimeoutValue[0] = 0.2;
-    stateTransitionOnTimeout[0] = "CheckChamber";
+	stateTimeoutValue[0] = 0.3;
+	stateTransitionOnTimeout[0] = "CheckChamber";
 
-    stateName[1] = "CheckChamber";
-    stateTransitionOnLoaded[1] = "Ready";
-    stateTransitionOnNotLoaded[1] = "Empty";
+	stateName[1] = "CheckChamber";
+	stateTransitionOnLoaded[1] = "Ready";
+	stateTransitionOnNotLoaded[1] = "Empty";
 
-    stateName[2] = "Empty";
+	stateName[2] = "Empty";
 	stateSequence[2] = "noammo";
-    stateTransitionOnLoaded[2] = "Ready";
-    stateTransitionOnTriggerDown[2] = "EmptyFire";
+	stateTransitionOnLoaded[2] = "Ready";
+	stateTransitionOnTriggerDown[2] = "EmptyFire";
 	stateTransitionOnAmmo[2] = "Reload";
 
-    stateName[3] = "EmptyFire";
-    stateScript[3] = "onEmptyFire";
+	stateName[3] = "EmptyFire";
+	stateScript[3] = "onEmptyFire";
 	stateSequence[3] = "emptyFire";
 	stateTimeoutValue[3] = 0.13;
 	stateWaitForTimeout[3] = true;
 	stateAllowImageChange[3] = false;
-    stateTransitionOnTriggerUp[3] = "Empty";
+	stateTransitionOnTriggerUp[3] = "Empty";
 
-    stateName[4] = "Ready";
+	stateName[4] = "Ready";
 	stateSequence[4] = "root";
 	stateTransitionOnAmmo[4] = "Reload";
-    stateTransitionOnTriggerDown[4] = "Fire";
+	stateTransitionOnTriggerDown[4] = "Fire";
 
-    stateName[5] = "Fire";
-    stateFire[5] = true;
-    stateScript[5] = "onFire";
+	stateName[5] = "Fire";
+	stateFire[5] = true;
+	stateScript[5] = "onFire";
 	stateSequence[5] = "Fire";
-    stateTimeoutValue[5] = 0.03;
+	stateTimeoutValue[5] = 0.03;
 	stateEmitter[5] = advBigBulletFireEmitter;
 	stateEmitterTime[5] = 0.05;
 	stateEmitterNode[5] = "muzzleNode";
 	stateAllowImageChange[5] = false;
-    stateTransitionOnTimeout[5] = "Smoke";
+	stateTransitionOnTimeout[5] = "Smoke";
 
 	stateName[6] = "Smoke";
 	stateEmitter[6] = advBigBulletSmokeEmitter;
 	stateEmitterTime[6] = 0.05;
 	stateEmitterNode[6] = "muzzleNode";
-	stateTimeoutValue[6] = 0.05;
+	stateTimeoutValue[6] = 0.025;
 	stateAllowImageChange[6] = false;
 	stateTransitionOnTimeout[6] = "CheckChamber";
 
@@ -125,12 +125,13 @@ datablock ShapeBaseImageData(ThompsonImage)
 
 function ThompsonImage::onMount(%this, %obj, %slot)
 {
-    %props = %obj.getItemProps();
+	%props = %obj.getItemProps();
 
 	if (%props.chamber $= "")
 		%props.chamber = 0;
-
-    %obj.setImageLoaded(%slot, %props.chamber == 1);
+	if (!isObject(%props.magazine))
+		%obj.mountImage(ThompsonEmptyImage, %slot);
+	%obj.setImageLoaded(%slot, %props.chamber == 1);
 }
 
 function ThompsonImage::onEmptyFire(%this, %obj, %slot)
@@ -143,7 +144,7 @@ function ThompsonImage::onEmptyFire(%this, %obj, %slot)
 		return;
 	}
 
-    serverPlay3D(RevolverClickSound, %obj.getMuzzlePoint(%slot));
+	serverPlay3D(RevolverClickSound, %obj.getMuzzlePoint(%slot));
 }
 
 function ThompsonImage::onFire(%this, %obj, %slot)
@@ -158,10 +159,16 @@ function ThompsonImage::onFire(%this, %obj, %slot)
 
 	Parent::onFire(%this, %obj, %slot);
 
-    if (%props.magazine.count >= 1)
-        serverPlay3D(ThompsonFireSound, %obj.getMuzzlePoint(%slot));
-    else
-        serverPlay3D(ThompsonFireLastSound, %obj.getMuzzlePoint(%slot));
+	if (%props.magazine.count >= 1)
+	{
+		%obj.stopAudio(3);
+		%obj.playAudio(3, ThompsonFireSound);
+	}
+	else
+	{
+		%obj.stopAudio(3);
+		%obj.playAudio(3, ThompsonFireLastSound);
+	}
 
 	%this.pullSlide(%obj, %slot);
 
@@ -199,46 +206,47 @@ function ThompsonImage::pullSlide(%this, %obj, %slot)
 
 function ThompsonImage::onLight(%this, %obj, %slot)
 {
-    %props = %obj.getItemProps();
+	%props = %obj.getItemProps();
 
-    if (isObject(%props.magazine))
-    {
+	if (isObject(%props.magazine))
+	{
 		%obj.giveMagazineProps(%props.magazine);
 		%props.magazine = "";
-
+		%obj.mountImage(ThompsonEmptyImage, %slot);
 		%obj.playThread(2, "shiftRight");
-        serverPlay3D(ComplexClipOutSound, %obj.getMuzzlePoint(%slot));
-    }
-    else
-    {
-        %props.magazine = %obj.takeMagazineProps(%this.item);
+		serverPlay3D(ComplexClipOutSound, %obj.getMuzzlePoint(%slot));
+	}
+	else
+	{
+		%props.magazine = %obj.takeMagazineProps(%this.item);
 
-        if (isObject(%props.magazine))
+		if (isObject(%props.magazine))
 		{
-            serverPlay3D(ComplexClipInSound, %obj.getMuzzlePoint(%slot));
+			%obj.mountImage(ThompsonImage, %slot);
+			serverPlay3D(ComplexClipInSound, %obj.getMuzzlePoint(%slot));
 			%obj.playThread(2, "shiftLeft");
 		}
-        else if (isObject(%obj.client))
-            messageClient(%obj.client, '', '\c6You don\'t have any magazines for this weapon.');
-    }
+		else if (isObject(%obj.client))
+			messageClient(%obj.client, '', '\c6You don\'t have any magazines for this weapon.');
+	}
 
 	if (isObject(%obj.client))
 		%obj.client.updateDetailedGunHelp();
 
-    return 1;
+	return 1;
 }
 
 function ThompsonImage::onTrigger(%this, %obj, %slot, %trigger, %state)
 {
-    %props = %obj.getItemProps();
+	%props = %obj.getItemProps();
 
-    if (%trigger == 4 && %state && %obj.getImageState(%slot) !$= "Reload")
-    {
+	if (%trigger == 4 && %state && %obj.getImageState(%slot) !$= "Reload")
+	{
 		%obj.setImageAmmo(%slot, true);
-        return 1;
-    }
+		return 1;
+	}
 
-    return 0;
+	return 0;
 }
 
 function ThompsonImage::damage(%this, %obj, %col, %position, %normal)
@@ -247,14 +255,14 @@ function ThompsonImage::damage(%this, %obj, %col, %position, %normal)
 	{
 		ComplexHeadshotSFX.playFrom(%position, %col);
 
-		%damage = 12;
+		%damage = 11;
 		%damageType = $DamageType::ThompsonHeadshot;
 	}
 	else
 	{
 		ComplexFleshImpactBulletSFX.playFrom(%position, %col);
 
-		%damage = 8;
+		%damage = 7.5;
 		%damageType = $DamageType::Thompson;
 	}
 
@@ -343,4 +351,71 @@ function ThompsonImage::getDetailedGunHelp(%this, %obj, %slot)
 	%text = %text @ %ac_action   @ %at_action   @ "   " @ %kt_rmb @ " \n";
 	%text = %text @ %ac_magazine @ %at_magazine @ "   " @ %kt_r   @ " \n";
 	return %text;
+}
+
+//No clip version of Thompson
+
+datablock ShapeBaseImageData(ThompsonEmptyImage : ThompsonImage)
+{
+	stateSequence[0] = "noclip";
+	stateSequence[2] = "noclip";
+	stateSequence[3] = "noclip";
+	stateSequence[4] = "noclip";
+	stateSequence[5] = "noclip_fire";
+	stateSequence[7] = "noclip_fire";
+};
+
+function ThompsonEmptyImage::onMount(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+	if (%props.chamber $= "")
+		%props.chamber = 0;
+	%obj.setImageLoaded(%slot, %props.chamber == 1);
+}
+
+//Datablock-inherited functions below. Why is this not done by default I will never know.
+function ThompsonEmptyImage::onEmptyFire(%this, %obj, %slot)
+{
+	ThompsonImage::onEmptyFire(%this,%obj,%slot);
+}
+function ThompsonEmptyImage::onFire(%this, %obj, %slot)
+{
+	ThompsonImage::onFire(%this,%obj,%slot);
+}
+function ThompsonEmptyImage::onReload(%this, %obj, %slot)
+{
+	ThompsonImage::onReload(%this,%obj,%slot);
+}
+function ThompsonEmptyImage::pullSlide(%this, %obj, %slot)
+{
+	ThompsonImage::pullSlide(%this,%obj,%slot);
+}
+function ThompsonEmptyImage::onLight(%this, %obj, %slot)
+{
+	ThompsonImage::onLight(%this,%obj,%slot);
+}
+function ThompsonEmptyImage::onTrigger(%this, %obj, %slot, %trigger, %state)
+{
+	ThompsonImage::onTrigger(%this, %obj, %slot, %trigger, %state);
+}
+function ThompsonEmptyImage::damage(%this, %obj, %col, %position, %normal)
+{
+	ThompsonImage::damage(%this, %obj, %col, %position, %normal);
+}
+// function ThompsonEmptyImage::getDebugText(%this, %obj, %slot)
+// {
+// 	ThompsonImage::getDebugText(%this,%obj,%slot);
+// }
+function ThompsonEmptyImage::getGunHelp(%this, %obj, %slot)
+{
+	ThompsonImage::getGunHelp(%this,%obj,%slot);
+}
+function ThompsonEmptyImage::getDetailedGunHelp(%this, %obj, %slot)
+{
+	ThompsonImage::getDetailedGunHelp(%this, %obj, %slot);
+}
+function ThompsonEmptyImage::onDrop(%this, %obj, %slot)
+{
+	%obj.unMountImage(%slot); //Unmount the empty image
+	return 0; //Don't interfere with the default serverCmdDropTool function
 }
