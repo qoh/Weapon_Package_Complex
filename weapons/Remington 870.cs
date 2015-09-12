@@ -215,8 +215,9 @@ function Remington870Image::onTrigger(%this, %obj, %slot, %trigger, %state)
 function Remington870Image::onLight(%this, %obj, %slot)
 {
     %props = %obj.getItemProps();
+	%state = %obj.getImageState(%slot);
 
-    if (%props.count < 6)
+    if (%props.count < 6 && (%state $= "Ready" || %state $= "Empty"))
     {
 		if ($Sim::Time - %obj.lastRemingtonInsert <= 0.2)
 			return 1;
