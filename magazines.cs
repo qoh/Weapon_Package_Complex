@@ -19,13 +19,35 @@ function Player::giveMagazineProps(%this, %props)
 	{
 		if (%this.client.discardEmptyMagazine == 2)
 		{
-			%props.delete();
+			%item = new Item()
+			{
+				datablock = %props.sourceItemData;
+				position = %this.getEyePoint();
+				itemProps = %props;
+				client = %this.client;
+				miniGame = %this.miniGame;
+			};
+
+			%item.setCollisionTimeout(%this);
+			%item.setVelocity(vectorAdd(%this.getVelocity(), vectorCross("0 0 -1", vectorScale(%this.getForwardVector(), 7))));
+			%item.schedulePop();
 			return;
 		}
 
 		if (%this.client.discardEmptyMagazine == 1 && %this.findMagazine(%props.weapon) >= 0)
 		{
-			%props.delete();
+			%item = new Item()
+			{
+				datablock = %props.sourceItemData;
+				position = %this.getEyePoint();
+				itemProps = %props;
+				client = %this.client;
+				miniGame = %this.miniGame;
+			};
+
+			%item.setCollisionTimeout(%this);
+			%item.setVelocity(vectorAdd(%this.getVelocity(), vectorCross("0 0 -1", vectorScale(%this.getForwardVector(), 7))));
+			%item.schedulePop();
 			return;
 		}
 	}
@@ -40,8 +62,18 @@ function Player::giveMagazineProps(%this, %props)
 
 	if (%i == %maxTools)
 	{
-		// todo: drop mag
-		%props.delete();
+		%item = new Item()
+		{
+			datablock = %props.sourceItemData;
+			position = %this.getEyePoint();
+			itemProps = %props;
+			client = %this.client;
+			miniGame = %this.miniGame;
+		};
+
+		%item.setCollisionTimeout(%this);
+		%item.setVelocity(vectorAdd(%this.getVelocity(), vectorCross("0 0 -1", vectorScale(%this.getForwardVector(), 7))));
+		%item.schedulePop();
 		return;
 	}
 

@@ -207,6 +207,12 @@ function ThompsonImage::pullSlide(%this, %obj, %slot)
 function ThompsonImage::onLight(%this, %obj, %slot)
 {
 	%props = %obj.getItemProps();
+	%state = %obj.getImageState(%slot);
+
+	if (%state !$= "Ready" && %state !$= "Empty")
+	{
+		return 1;
+	}
 
 	if (isObject(%props.magazine))
 	{

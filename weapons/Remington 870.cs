@@ -183,7 +183,7 @@ function Remington870Image::onPump(%this, %obj, %slot)
 
     if (%props.chamber != 0)
     {
-        %obj.ejectShell(Bullet45Item, 1.35, %props.chamber == 2);
+        %obj.ejectShell(BulletBuckshotItem, 1.35, %props.chamber == 2);
         %props.chamber = 0;
     }
 

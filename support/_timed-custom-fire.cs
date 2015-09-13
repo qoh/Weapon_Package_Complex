@@ -143,27 +143,27 @@ package TimedCustomFire
 
 			%proj = new ScriptObject()
 			{
-		        class = "ProjectileRayCast";
-		        superClass = "TimedRayCast";
+				class = "ProjectileRayCast";
+				superClass = "TimedRayCast";
 
-		        position = %origin;
-		        velocity = %velocity;
+				position = %origin;
+				velocity = %velocity;
 
-		        lifetime = %this.fireLifetime;
-		        gravity = %this.fireGravity;
+				lifetime = %this.fireLifetime;
+				gravity = %this.fireGravity;
 
-		        mask = %this.fireMask $= "" ? $TypeMasks::PlayerObjectType | $TypeMasks::FxBrickObjectType | $TypeMasks::TerrainObjectType : %this.fireMask;
-		        exempt = %obj;
-		        sourceObject = %obj;
-		        sourceClient = %obj.client;
-		        damage = %this.directDamage;
-		        damageType = %this.directDamageType;
+				mask = %this.fireMask $= "" ? $TypeMasks::PlayerObjectType | $TypeMasks::FxBrickObjectType | $TypeMasks::TerrainObjectType : %this.fireMask;
+				exempt = %obj;
+				sourceObject = %obj;
+				sourceClient = %obj.client;
+				damage = %this.directDamage;
+				damageType = %this.directDamageType;
 				damageRef = %this;
-		        hitExplosion = %this.projectile;
-		    };
+				hitExplosion = %this.projectile;
+			};
 
-		    MissionCleanup.add(%proj);
-		    %proj.fire();
+			MissionCleanup.add(%proj);
+			%proj.fire();
 		}
 	}
 };

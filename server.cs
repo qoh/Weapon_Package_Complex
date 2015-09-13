@@ -12,10 +12,10 @@ exec("./support/movespeed.cs");
 
 exec("./adventure_Effects.cs");
 
+exec("./sounds.cs");
 exec("./calculations.cs");
 exec("./magazines.cs");
 exec("./bullets.cs");
-exec("./sounds.cs");
 exec("./damage.cs");
 exec("./misc/effects.cs");
 

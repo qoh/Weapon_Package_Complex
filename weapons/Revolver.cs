@@ -68,6 +68,14 @@ datablock AudioProfile(RevolverClickSound)
 	preload = true;
 };
 
+new ScriptObject(RevolverInsertSFX)
+{
+	class = "SFXEffect";
+
+	file[main, 1] = "Add-Ons/Weapon_Package_Complex/assets/sounds/bullet_insert.wav";
+	file[main, 2] = "Add-Ons/Weapon_Package_Complex/assets/sounds/bullet_insert2.wav";
+};
+
 datablock ItemData(RevolverItem)
 {
 	shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/S&W_Revolver.dts";
@@ -104,9 +112,7 @@ datablock ShapeBaseImageData(RevolverImage)
 	isRevolver = true;
 	speedScale = 0.85;
 
-	insertSound0 = AdvReloadInsert1Sound;
-	insertSound1 = AdvReloadInsert2Sound;
-	numInsertSound = 2;
+	insertSFX = revolverInsertSFX;
 
 	stateName[0] = "Activate";
 	stateSequence[0] = "Activate";
@@ -223,15 +229,18 @@ function RevolverImage::getDebugText(%this, %obj, %slot)
 		%text = %text @ " ";
 
 	%text = %text @ "\c3_\n";
-
-	for (%i = 0; %i < 6; %i++)
+	%state = %obj.getImageState(%slot);
+	if (%state $= "Opened" || %state $= "EjectShell")
 	{
-		switch (%props.slot[%i])
+		for (%i = 0; %i < 6; %i++)
 		{
-			case 0: %text = %text @ "\c7o";
-			case 1: %text = %text @ "\c6o";
-			case 2: %text = %text @ "\c3o";
-			default: %text = %text @ "\c0o";
+			switch (%props.slot[%i])
+			{
+				case 0: %text = %text @ "\c7o";
+				case 1: %text = %text @ "\c6o";
+				case 2: %text = %text @ "\c3o";
+				default: %text = %text @ "\c0o";
+			}
 		}
 	}
 }
@@ -265,8 +274,7 @@ function RevolverImage::onTrigger(%this, %obj, %slot, %trigger, %state)
 	{
 		if (%props.slot[%props.currSlot] == 0)
 		{
-			%sound = %this.insertSound[getRandom(%this.numInsertSound + 1)];
-			serverPlay3D(%sound, %obj.getMuzzlePoint(%slot));
+			%this.insertSFX.play(%obj.getMuzzlePoint(%slot));
 			%props.slot[%props.currSlot] = 1;
 			%obj.playThread(2, "plant");
 		}
@@ -308,8 +316,9 @@ function RevolverImage::onFire(%this, %obj, %slot)
 	if (%obj.getState() $= "Dead")
 		return;
 
-	Parent::onFire(%this, %obj, %slot);
-
+	if(!%obj.suiciding) //If we're not firing through suicide
+		Parent::onFire(%this, %obj, %slot);
+	%obj.suiciding = ""; //reset the var, just in case
 	%props = %obj.getItemProps();
 	%props.slot[%props.currSlot] = 2;
 	%props.currSlot = (%props.currSlot + 1) % 6;
@@ -321,13 +330,65 @@ function RevolverImage::onFire(%this, %obj, %slot)
 	%obj.applyComplexScreenshake(1);
 }
 
+function RevolverImage::onSuicide(%this, %obj, %slot)
+{
+	%image = %obj.getMountedImage(%slot);
+	%state = %obj.getImageState(%slot);
+	if(%state !$= "Ready" && %state !$= "Empty")
+	{
+		return 1;
+	}
+	%props = %obj.getItemProps();
+	if(%props.slot[%props.currSlot] != 1) //Either spent or empty
+	{
+		%obj.setImageTrigger(%slot, 1);
+		%obj.playThread(2, plant);
+		serverPlay3d(RevolverClickSound, %obj.getHackPosition());
+	}
+	else
+	{
+		//What you're about to see below is probably the ugliest thing I ever coded. ~Jack Noir
+		%obj.playThread(2, shiftRight);
+		%obj.playThread(3, shiftLeft);
+		%obj.applyComplexKnockback(5);
+		%props.slot[%props.currSlot] = 2;
+		serverplay3d(revolverFireSound, %obj.getMuzzlePoint(%slot));
+		%obj.suiciding = 1;
+		%obj.setImageTrigger(%slot, 1);
+		%proj = new ScriptObject()
+		{	
+			class = "ProjectileRayCast";
+			superClass = "TimedRayCast";
+
+			position = %obj.getEyePoint();
+			velocity = "0 0 0";
+
+			lifetime = %this.fireLifetime;
+			gravity = %this.fireGravity;
+
+			mask = %this.fireMask $= "" ? $TypeMasks::PlayerObjectType | $TypeMasks::FxBrickObjectType | $TypeMasks::TerrainObjectType : %this.fireMask;
+			exempt = "";
+			sourceObject = %obj;
+			sourceClient = %obj.client;
+			damage = %this.directDamage;
+			damageType = %this.directDamageType;
+			damageRef = %this;
+			hitExplosion = %this.projectile;
+		};
+		MissionCleanup.add(%proj);
+		%obj.setDamageLevel(%obj.getDataBlock().maxDamage - 1); //Set their HP to 1 so headshot will be a guaranteed instakill
+		%proj.fire();
+	}
+	return 1;
+}
+
 function RevolverImage::onEjectShell(%this, %obj, %slot)
 {
 	%props = %obj.getItemProps();
 
 	if (%props.slot[%props.currSlot] != 0)
 	{
-		%obj.ejectShell(Bullet45Item, 0.5, %props.slot[%props.currSlot] == 2);
+		%obj.ejectShell(Bullet357Item, 0.5, %props.slot[%props.currSlot] == 2);
 		%props.slot[%props.currSlot] = 0;
 	}
 

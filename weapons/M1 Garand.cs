@@ -161,7 +161,7 @@ function M1GarandImage::pullSlide(%this, %obj, %slot)
 
 	if (%props.chamber != 0)
 	{
-		%obj.ejectShell(Bullet45Item, 1, %props.chamber == 2);
+		%obj.ejectShell(Bullet30Item, 1, %props.chamber == 2);
 		%props.chamber = 0;
 	}
 

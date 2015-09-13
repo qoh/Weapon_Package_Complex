@@ -8,6 +8,11 @@ function ShapeBaseImageData::onLight(%this, %obj, %slot)
 	return 0;
 }
 
+function ShapeBaseImageData::onSuicide(%this, %obj, %slot)
+{
+	return 0;
+}
+
 function ShapeBaseImageData::onDrop(%this, %obj, %slot)
 {
 	return 0;
@@ -32,6 +37,25 @@ package ImageTriggerPackage
 
 		if (!%stop)
 			Parent::serverCmdLight(%client);
+	}
+
+	function serverCmdSuicide(%client)
+	{
+		%player = %client.player;
+
+		if (isObject(%player))
+		{
+			for (%i = 0; %i < 4; %i++)
+			{
+				%image = %player.getMountedImage(%i);
+
+				if (isObject(%image) && %image.onSuicide(%player, %i))
+					%stop = 1;
+			}
+		}
+
+		if (!%stop)
+			Parent::serverCmdSuicide(%client);
 	}
 
 	function Armor::onTrigger(%this, %obj, %slot, %state)

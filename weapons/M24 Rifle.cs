@@ -125,12 +125,20 @@ function M24RifleImage::onLight(%this, %obj, %slot)
 	{
 		%obj.giveMagazineProps(%props.magazine);
 		%props.magazine = "";
+
+		%obj.playThread(2, "shiftRight");
+		serverPlay3D(ComplexClipOutSound, %obj.getMuzzlePoint(%slot));
 	}
 	else
 	{
 		%props.magazine = %obj.takeMagazineProps(%this.item);
 
-		if (!isObject(%props.magazine) && isObject(%obj.client))
+		if (isObject(%props.magazine))
+		{
+			serverPlay3D(ComplexClipInSound, %obj.getMuzzlePoint(%slot));
+			%obj.playThread(2, "shiftLeft");
+		}
+		else if (isObject(%obj.client))
 			messageClient(%obj.client, '', '\c6You don\'t have any magazines for this weapon.');
 	}
 
@@ -161,7 +169,7 @@ function M24RifleImage::onCycle(%this, %obj, %slot)
 
 	if (%props.chamber != 0)
 	{
-		%obj.ejectShell(Bullet45Item, 1.95, %props.chamber == 2);
+		%obj.ejectShell(Bullet30Item, 1.95, %props.chamber == 2);
 		%props.chamber = 0;
 	}
 
@@ -182,8 +190,9 @@ function M24RifleImage::onCycle(%this, %obj, %slot)
 datablock ShapeBaseImageData(M24RifleScopeImage)
 {
 	className = "TimeSliceRayWeapon";
-	shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/remmington700_sniper_scoped_v3.dts";
+	shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/remmington700_sniper_scoped_notex.dts";
 
+	melee = true; //Fire from eye point so we don't get any weird results (for example, shooting from cover and hitting it instead of target)
 	fireMuzzleVelocity = cf_muzzlevelocity_ms(790 * 1.5);
 	fireVelInheritFactor = 0.75;
 	fireGravity = cf_bulletdrop_grams(10);
@@ -223,7 +232,7 @@ datablock ShapeBaseImageData(M24RifleScopeImage)
 
 	stateName[5] = "EmptyFire";
 	stateScript[5] = "onEmptyFire";
-	stateSequence[5] = "Fire";
+	stateSequence[5] = "";
 	stateAllowImageChange[5] = false;
 	stateTimeoutValue[5] = 0.25;
 	stateWaitForTimeout[5] = true;

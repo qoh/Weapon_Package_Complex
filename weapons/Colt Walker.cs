@@ -19,17 +19,18 @@ datablock AudioProfile(ColtWalkerFireSound)
 	description = AudioClose3d;
 	preload = true;
 };
-datablock AudioProfile(ColtWalkerInsertSound)
-{
-	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds_west/coltwalker/insert.wav";
-	description = AudioClose3d;
-	preload = true;
-};
 datablock AudioProfile(ColtWalkerLeverSound)
 {
 	fileName = "Add-Ons/Weapon_Package_Complex/assets/sounds_west/coltwalker/lever.wav";
 	description = AudioClose3d;
 	preload = true;
+};
+
+new ScriptObject(WalkerInsertSFX)
+{
+	class = "SFXEffect";
+
+	file[main, 1] = "Add-Ons/Weapon_Package_Complex/assets/sounds_west/coltwalker/insert.wav";
 };
 
 datablock ItemData(ColtWalkerItem)
@@ -67,8 +68,7 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 	isRevolver = true;
 	speedScale = 0.7;
 
-	insertSound0 = ColtWalkerInsertSound;
-	numInsertSound = 1;
+	insertSFX = WalkerInsertSFX;
 
 	stateName[0] = "Activate";
 	stateTimeoutValue[0] = 0.4;
@@ -131,7 +131,7 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 	stateName[9] = "Opening";
 	stateLoadedFlag[9] = "NotLoaded"; // doesn't seem to work
 	stateSequence[9] = "Openchamber";
-	stateTimeoutValue[9] = 0.4;
+	stateTimeoutValue[9] = 0.1;
 	stateAllowImageChange[9] = false;
 	stateTransitionOnTimeout[9] = "Opened";
 	stateScript[9] = "onOpening";
@@ -142,7 +142,7 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 
 	stateName[11] = "Closing";
 	stateSequence[11] = "Closechamber";
-	stateTimeoutValue[11] = 0.4;
+	stateTimeoutValue[11] = 0.1;
 	stateAllowImageChange[11] = false;
 	stateTransitionOnTimeout[11] = "HammerUp";
 	stateScript[11] = "onClosing";
@@ -224,11 +224,17 @@ function ColtWalkerImage::onFire(%this, %obj, %slot)
 	%props.currSlot = (%props.currSlot + 1) % 6;
 
 	%obj.playThread(2, "shiftAway");
-	%obj.schedule(100, playThread, 3, "plant");
+	%obj.schedule(100, playThread, 2, "plant");
 
 	%obj.applyComplexKnockback(2.5);
 	%obj.applyComplexScreenshake(2);
 }
+
+function ColtWalkerImage::onSuicide(%this, %obj, %slot)
+{
+	RevolverImage::onSuicide(%this, %obj, %slot);
+}
+
 
 function ColtWalkerImage::onEjectShell(%this, %obj, %slot)
 {
