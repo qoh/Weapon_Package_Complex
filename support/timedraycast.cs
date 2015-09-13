@@ -37,23 +37,12 @@ function TimedRayCast::onMiss(%this)
 function TimedRayCast::onStart(%this)
 {
     // %this.pathTracer = createShape(CylinderGlowShapeData, "1 1 1 0.9");
-    %this.pathTracer = createShape(BulletShapeData, "1 1 0.5 1");
-    %a = %this.position;
-    %b = vectorAdd(%a, vectorScale(%this.velocity, %this.tickInterval / 1000));
-    %result = containerRayCast(%a, %b, %this.mask,
-        %this.exempt, %this.exempt2, %this.exempt3,
-        %this.exempt4, %this.exempt5, %this.exempt6);
-    if(%result)
-        %newpos = getWords(%result, 1, 3);
-    else
-        %newpos = %b;
-    %this.pathTracer.transformLine(%a, %newpos, 0.5);
 }
 
 function TimedRayCast::onEnd(%this)
 {
     if (isObject(%this.pathTracer))
-        %this.pathTracer.schedule(64, "delete");
+        %this.pathTracer.schedule(500, "delete");
 
     %this.delete();
 }
@@ -61,7 +50,7 @@ function TimedRayCast::onEnd(%this)
 function TimedRayCast::onMove(%this, %a, %b, %ray)
 {
     if (isObject(%this.pathTracer))
-        %this.pathTracer.transformLine(%a, %b, 0.5);
+        %this.pathTracer.transformLine(%a, %b, 0.01);
 }
 
 function TimedRayCast::fire(%this)
@@ -135,8 +124,6 @@ function ProjectileRayCast::onMove(%this, %a, %b, %ray, %i)
 {
     // %shape = createShape(CylinderGlowShapeData, $color[%i % 6] SPC 1, 500);
     // %shape.transformLine(%a, %b, 0.1);
-    // if (isObject(%this.pathTracer) && %dt != 0)
-    //     %this.pathTracer.transformLine(%a, %b, 0.5);
 
     %maxDist = 2.5;
 

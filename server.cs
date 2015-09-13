@@ -20,9 +20,6 @@ exec("./damage.cs");
 exec("./misc/effects.cs");
 
 // temporary
-
-exec("./assets/debug/init.cs");
-
 datablock PlayerData(DeathmatchPlayer : PlayerStandardArmor)
 {
 	uiName = "Deathmatch Player";
