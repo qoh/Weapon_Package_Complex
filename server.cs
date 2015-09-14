@@ -154,6 +154,28 @@ function Player::debugWeapon(%this)
     %this.debugWeapon = %this.schedule(50, "debugWeapon");
 }
 
+function serverCmdToggleGunHelp(%this, %tog)
+{
+	if(%tog $= "")
+		%tog = !%this.disableDetailedGunHelp;
+	%tog = MClampF(%tog, 0, 1);
+	%this.disableDetailedGunHelp = %tog;
+	messageClient(%client, '', "\c4Gun Preferences\c6: You have " @ (%tog ? "enabled" : "disabled") @ " on-screen gun help.");
+}
+
+function serverCmdDiscardEmptyMagazines(%this, %val)
+{
+	if(%val $= "")
+	{
+		messageClient(%client, '', "\c4Gun Preferences\c6: Specify a number from 0 to 2 to change your magazine preferences.");
+		messageClient(%client, '', "\c4Gun Preferences\c6: 0 will not drop empty magazines for you, 1 will drop empty magazines unless it's your last, and 2 will always throw away empty magazines.");
+		return;
+	}
+	%val = MClampF(%val, 0, 2);
+	%this.discardEmptyMagazine = %val;
+	messageClient(%client, '', "\c4Gun Preferences\c6: " @ %text);
+}
+
 package GunHelpPackage
 {
 	function Player::mountImage(%this, %image, %slot, %loaded, %skinTag)
