@@ -176,9 +176,15 @@ datablock ItemData(MagazineItem_45ACP_x7)
 	iconName = "./assets/icons/colt_clip";
 	uiName = "A: M1911";
 
+	doColorShift = true;
+	colorShiftColor = "0.749 0.749 0.749 1";
+
 	magSize = 12;
 	magWeapon = Colt1911Item;
 	magType = "extended detachable box magazine";
+
+	shellCollisionThreshold = 2;
+	shellCollisionSFX = WeaponSoftImpactSFX;
 
 	cartName = ".45 ACP (11.43x23mm)";
 	cartWeight = 15;
@@ -189,7 +195,7 @@ datablock ItemData(MagazineItem_M24A1 : MagazineItem_45ACP_x7)
 	shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/items/m1garand_clip.dts";
 	iconName = "./assets/icons/m1garand_clip";
 	uiName = "A: M24";
-
+	doColorShift = false;
 	magSize = 5;
 	magWeapon = M24RifleItem;
 	magType = "internal magazine";
@@ -203,7 +209,7 @@ datablock ItemData(MagazineItem_45ACP_x20_SMG : MagazineItem_45ACP_x7)
 	shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/items/thompson_clip.dts";
 	iconName = "./assets/icons/thompson_clip";
 	uiName = "A: Thompson";
-
+	doColorShift = false;
 	magSize = 50;
 	magWeapon = ThompsonItem;
 	magType = "drum magazine";
@@ -217,7 +223,7 @@ datablock ItemData(MagazineItem_3006_x8 : MagazineItem_45ACP_x7)
 	shapeFile = "./assets/shapes/items/m1garand_clip.dts";
 	iconName = "./assets/icons/m1garand_clip";
 	uiName = "A: Garand";
-
+	doColorShift = false;
 	magSize = 8;
 	magWeapon = M1GarandItem;
 	magType = "en-bloc clip";
@@ -229,8 +235,9 @@ datablock ItemData(MagazineItem_3006_x8 : MagazineItem_45ACP_x7)
 datablock ItemData(MagazineItem_MicroUzi : MagazineItem_45ACP_x7)
 {
     shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/items/uzi_magazine_20x.dts";
+ 	iconName = "./assets/icons/uzi_mag";
     uiName = "A: Uzi";
-
+    doColorShift = false;
     magSize = 20;
     magWeapon = MicroUziItem;
     magType = "magazine";
@@ -243,11 +250,12 @@ datablock ItemData(MagazineItem_MicroUzi : MagazineItem_45ACP_x7)
 datablock ItemData(MagazineItem_MicroUziExtended : MagazineItem_45ACP_x7)
 {
 	shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/items/uzi_magazine_32x.dts";
+	iconName = "./assets/icons/uzi_mag_extended";
 	uiName = "A: Uzi Extended";
-
+	doColorShift = false;
 	magSize = 32;
 	magWeapon = MicroUziItem;
-	magType = "magazine";
+	magType = "extended magazine";
 
 	cartName = "9×19mm Parabellum";
 	cartWeight = 15; //Todo: check if this weight is correct

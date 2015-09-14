@@ -36,6 +36,9 @@ datablock ItemData(ThompsonItem)
 	uiName = "Thompson";
 	image = ThompsonImage;
 
+	shellCollisionThreshold = 2;
+	shellCollisionSFX = WeaponHardImpactSFX;
+
 	itemPropsClass = "SimpleMagWeaponProps";
 };
 

@@ -35,6 +35,9 @@ datablock ItemData(M1GarandItem)
 	image = M1GarandImage;
 	canDrop = true;
 
+	shellCollisionThreshold = 2;
+	shellCollisionSFX = WeaponHardImpactSFX;
+
 	itemPropsClass = "SimpleMagWeaponProps";
 };
 

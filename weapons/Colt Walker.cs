@@ -1,10 +1,10 @@
 addDamageType("ColtWalker",
-	'<bitmap:base/client/ui/ci/skull> %1',
-	'%2 <bitmap:base/client/ui/ci/skull> %1',
+	'<bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_coltwalker> %1',
+	'%2 <bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_coltwalker> %1',
 	0.2, 1);
 addDamageType("ColtWalkerHeadshot",
-	'<bitmap:base/client/ui/ci/skull><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
-	'%2 <bitmap:base/client/ui/ci/skull><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
+	'<bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_coltwalker><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
+	'%2 <bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_coltwalker><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
 	0.2, 1);
 
 datablock AudioProfile(ColtWalkerCockSound)
@@ -36,6 +36,7 @@ new ScriptObject(WalkerInsertSFX)
 datablock ItemData(ColtWalkerItem)
 {
 	shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/colt_walker.dts";
+	iconName = "Add-Ons/Weapon_Package_Complex/assets/icons/coltwalker";
 	uiName = "Colt Walker";
 
 	canDrop = true;
@@ -45,6 +46,9 @@ datablock ItemData(ColtWalkerItem)
 	density = 0.2;
 	elasticity = 0.2;
 	friction = 0.6;
+
+	shellCollisionThreshold = 2;
+	shellCollisionSFX = WeaponHardImpactSFX;
 
 	itemPropsClass = "RevolverProps";
 };

@@ -61,6 +61,9 @@ datablock ItemData(Remington870Item)
     iconName = "Add-Ons/Weapon_Package_Complex/assets/icons/remmington";
     image = Remington870Image;
     canDrop = true;
+
+    shellCollisionThreshold = 2;
+    shellCollisionSFX = WeaponHardImpactSFX;
 };
 
 datablock ShapeBaseImageData(Remington870Image)

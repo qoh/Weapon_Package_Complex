@@ -1,10 +1,10 @@
 addDamageType("M24Rifle",
-	'<bitmap:base/client/ui/ci/skull> %1',
-	'%2 <bitmap:base/client/ui/ci/skull> %1',
+	'<bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_m24> %1',
+	'%2 <bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_m24> %1',
 	0.2, 1);
 addDamageType("M24RifleHeadshot",
-	'<bitmap:base/client/ui/ci/skull><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
-	'%2 <bitmap:base/client/ui/ci/skull><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
+	'<bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_m24><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
+	'%2 <bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_m24><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
 	0.2, 1);
 
 // datablock AudioProfile(SniperFire1Sound)
@@ -68,6 +68,7 @@ datablock AudioProfile(SniperReloadSound)
 datablock ItemData(M24RifleItem)
 {
 	shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/remmington700_sniper.dts";
+	iconName = "Add-Ons/Weapon_Package_Complex/assets/icons/m24";
 	mass = 1;
 	density = 0.2;
 	elasticity = 0.2;
@@ -77,6 +78,9 @@ datablock ItemData(M24RifleItem)
 	canDrop = 1;
 	uiName = "M24 Rifle";
 	image = M24RifleImage;
+
+	shellCollisionThreshold = 2;
+	shellCollisionSFX = WeaponHardImpactSFX;
 
 	itemPropsClass = "M24RifleProps";
 };

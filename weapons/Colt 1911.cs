@@ -57,6 +57,9 @@ datablock ItemData(Colt1911Item)
     uiName = "Colt 1911";
     image = Colt1911Image;
 
+	shellCollisionThreshold = 2;
+	shellCollisionSFX = WeaponSoftImpactSFX;
+
     itemPropsClass = "SimpleMagWeaponProps";
 };
 

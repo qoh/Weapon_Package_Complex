@@ -1,10 +1,10 @@
 addDamageType("MicroUzi",
-	'<bitmap:base/client/ui/ci/skull> %1',
-	'%2 <bitmap:base/client/ui/ci/skull> %1',
+	'<bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_uzi> %1',
+	'%2 <bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_uzi> %1',
 	0.2, 1);
 addDamageType("MicroUziHeadshot",
-	'<bitmap:base/client/ui/ci/skull><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
-	'%2 <bitmap:base/client/ui/ci/skull><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
+	'<bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_uzi><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
+	'%2 <bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_uzi><bitmap:Add-Ons/Weapon_Package_Complex/assets/icons/ci_headshot> %1',
 	0.2, 1);
 
 datablock AudioProfile(MicroUziFireSound)
@@ -73,7 +73,7 @@ datablock AudioProfile(MicroUziDrawSound)
 datablock ItemData(MicroUziItem)
 {
 	shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/micro_uzi.dts";
-
+	iconName = "Add-Ons/Weapon_Package_Complex/assets/icons/uzi";
 	mass = 1;
 	density = 0.2;
 	elasticity = 0.2;
@@ -83,6 +83,9 @@ datablock ItemData(MicroUziItem)
 	canDrop = 1;
 	uiName = "Micro Uzi";
 	image = MicroUziImage;
+
+	shellCollisionThreshold = 2;
+	shellCollisionSFX = WeaponSoftImpactSFX;
 
 	itemPropsClass = "SimpleMagWeaponProps";
 };

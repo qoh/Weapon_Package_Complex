@@ -90,6 +90,9 @@ datablock ItemData(RevolverItem)
 	elasticity = 0.2;
 	friction = 0.6;
 
+	shellCollisionThreshold = 2;
+	shellCollisionSFX = WeaponSoftImpactSFX;
+
 	itemPropsClass = "RevolverProps";
 };
 

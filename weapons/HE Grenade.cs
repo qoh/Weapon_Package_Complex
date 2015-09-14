@@ -229,6 +229,7 @@ function HEGrenadeProjectile::onCollision(%this, %obj, %col, %fade, %position, %
 datablock ItemData(HEGrenadeItem)
 {
 	shapeFile = "Add-Ons/Weapon_Package_Complex/assets/shapes/weapons/grenade.dts";
+	iconName = "Add-Ons/Weapon_Package_Complex/assets/icons/grenade";
 	mass = 1;
 	drag = 0.2;
 	density = 0.2;

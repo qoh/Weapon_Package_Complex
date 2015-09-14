@@ -90,6 +90,24 @@ new ScriptObject(BuckshotShellSFX)
 	file[main, 3] = "Add-Ons/Weapon_Package_Complex/assets/sounds/shellDrop3.wav";
 };
 
+new ScriptObject(WeaponSoftImpactSFX)
+{
+	class = "SFXEffect";
+
+	file[main, 1] = "Add-Ons/Weapon_Package_Complex/assets/sounds/physics/weapon_impact_soft1.wav";
+	file[main, 2] = "Add-Ons/Weapon_Package_Complex/assets/sounds/physics/weapon_impact_soft2.wav";
+	file[main, 3] = "Add-Ons/Weapon_Package_Complex/assets/sounds/physics/weapon_impact_soft3.wav";
+};
+
+new ScriptObject(WeaponHardImpactSFX)
+{
+	class = "SFXEffect";
+
+	file[main, 1] = "Add-Ons/Weapon_Package_Complex/assets/sounds/physics/weapon_impact_hard1.wav";
+	file[main, 2] = "Add-Ons/Weapon_Package_Complex/assets/sounds/physics/weapon_impact_hard2.wav";
+	file[main, 3] = "Add-Ons/Weapon_Package_Complex/assets/sounds/physics/weapon_impact_hard3.wav";
+};
+
 new ScriptObject(GrenadePinSFX)
 {
 	class = "SFXEffect";
