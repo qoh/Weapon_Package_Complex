@@ -2,11 +2,14 @@ datablock ItemData(Bullet45Item)
 {
 	shapeFile = "./assets/shapes/items/45_bullet.dts";
 	uiName = "Shell: .45";
-	isBullet = true;
+
 	mass = 0.5;
 	density = 0.1;
 	elasticity = 0.4;
 	friction = 0.2;
+
+	isBullet = true;
+	playerCapacity = 36;
 
 	shellCollisionThreshold = 2;
 	shellCollisionSFX = GenericShellSFX;
@@ -16,20 +19,26 @@ datablock ItemData(Bullet357Item : Bullet45Item)
 {
 	shapeFile = "./assets/shapes/items/357_bullet.dts";
 	uiName = "Shell: .357";
+
+	playerCapacity = 36;
 };
 
 datablock ItemData(Bullet30Item : Bullet45Item)
 {
 	shapeFile = "./assets/shapes/items/30-06bullet.dts";
 	uiName = "Shell: .30-06";
+
+	playerCapacity = 36;
 };
 
 datablock ItemData(BulletBuckshotItem : Bullet45Item)
 {
 	shapeFile = "./assets/shapes/items/buckshot.dts";
 	uiName = "Shell: Buckshot";
-	shellCollisionSFX = BuckshotShellSFX;
 
+	playerCapacity = 36;
+
+	shellCollisionSFX = BuckshotShellSFX;
 	spentShell = BulletBuckshotSpentItem;
 };
 
@@ -37,18 +46,23 @@ datablock ItemData(BulletBuckshotSpentItem : BulletBuckshotItem)
 {
 	shapeFile = "./assets/shapes/items/buckshot_spent.dts";
 	uiName = "";
+
+	isBullet = false;
 };
 
 datablock ItemData(Bullet357Item : Bullet45Item)
 {
 	shapeFile = "./assets/shapes/items/357_bullet.dts";
 	uiName = "Shell: .357";
+
+	playerCapacity = 36;
 };
 
 function Player::ejectShell(%this, %data, %distance, %spent)
 {
-	if(%data.spentShell !$= "" && %spent)
+	if (%spent && isObject(%data.spentShell))
 		%data = %data.spentShell;
+
 	%item = new Item()
 	{
 		datablock = %data;
@@ -63,22 +77,11 @@ function Player::ejectShell(%this, %data, %distance, %spent)
 
 	BulletGroup.add(%item);
 
-	%item.schedule(14000, "fadeOut");
-	%item.schedule(15000, "delete");
-
+	%item.schedulePop();
 	%item.canPickup = 0;
 
 	if (%spent)
-	{
 		%item.hideNode("bullet");
-		// %item.setShapeName("Spent");
-		// %item.setShapeNameColor("1 0 0 1");
-	}
-	// else
-	// {
-	//     %item.setShapeName("Unspent");
-	//     %item.setShapeNameColor("0 1 0 1");
-	// }
 
 	%muzzleVector = %this.getMuzzleVector(0);
 	%cross = vectorCross(%muzzleVector, "0 0 1");
@@ -97,44 +100,79 @@ function Player::ejectShell(%this, %data, %distance, %spent)
 	%item.setTransform(%position SPC %rotation);
 	%item.setVelocity(%velocity);
 	%item.setCollisionTimeout(%this);
-	// %scalars = getRandomScalar() SPC getRandomScalar() SPC getRandomScalar();
-	// %spread = vectorScale(%scalars, mDegToRad(15 / 2));
-	// %vector = vectorAdd(vectorScale(%this.getEyeVector(), -%distance), "0 0 5");
-	//
-	// %velocity = matrixMulVector(matrixCreateFromEuler(%spread), %vector);
-	// %position = vectorAdd(%this.getMuzzlePoint(0), vectorScale(%this.getMuzzleVector(0), -%distance));
-	// %rotation = eulerToAxis("0 0" SPC getRandom() * 360 - 180);
-	//
-	// %item.setVelocity(%velocity);
-	// %item.setTransform(%position SPC %rotation);
+}
+
+function Player::addBullets(%this, %data, %count)
+{
+	%capacity = %data.playerCapacity - %this.bulletCount[%data];
+	%added = getMin(%capacity, %count);
+	%count = getMax(0, %count - %capacity);
+
+	%this.bulletCount[%data] += %added;
+
+	if (%added > 0)
+	{
+		//
+	}
+
+	return %count;
 }
 
 function Item::monitorCollisionSounds(%this, %before)
 {
 	cancel(%this.monitorCollisionSounds);
-	%now = vectorLen(%this.getVelocity());
-	%db = %this.getDatablock();
 
-	if (%before - %now >= %db.shellCollisionThreshold)
-		%db.shellCollisionSFX.play(%this.getPosition());
+	%data = %this.getDatablock();
+	%now = vectorLen(%this.getVelocity());
+
+	if (%before - %now >= %data.shellCollisionThreshold)
+		%data.shellCollisionSFX.play(%this.getPosition());
 
 	%this.monitorCollisionSounds = %this.schedule(50, "monitorCollisionSounds", %now);
 }
 
 function eulerToAxis(%euler)
 {
-	%euler = VectorScale(%euler,$pi / 180);
-	%matrix = MatrixCreateFromEuler(%euler);
-	return getWords(%matrix,3,6);
+	%euler = VectorScale(%euler, $pi / 180);
+	return getWords(MatrixCreateFromEuler(%euler), 3, 6);
 }
 
-package shellSoundPackage
+package ComplexBulletPackage
 {
 	function ItemData::onAdd(%this, %item)
 	{
-		parent::onAdd(%this, %item);
-		if(%this.shellCollisionSFX !$= "")
+		Parent::onAdd(%this, %item);
+
+		if (isObject(%this.shellCollisionSFX))
 			%item.monitorCollisionSounds();
 	}
+
+	function Player::activateStuff(%this)
+	{
+		Parent::activateStuff(%this);
+
+		%a = %this.getEyePoint();
+		%b = vectorAdd(%a, vectorScale(%this.getEyeVector(), 6));
+
+		%mask =
+			$TypeMasks::StaticObjectType |
+			$TypeMasks::FxBrickObjectType |
+			$TypeMasks::VehicleObjectType |
+			$TypeMasks::ItemObjectType;
+
+		%ray = containerRayCast(%a, %b, %mask);
+
+		if (!isObject(%ray) || !(%ray.getType() & $TypeMasks::ItemObjectType))
+			return;
+
+		%data = %ray.getDataBlock();
+
+		if (!%data.isBullet || %ray.spent)
+			return;
+
+		if (%this.addBullets(%data, 1) == 0)
+			%ray.delete();
+	}
 };
-activatePackage(shellSoundPackage);
+
+activatePackage("ComplexBulletPackage");

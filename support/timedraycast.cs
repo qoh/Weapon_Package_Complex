@@ -206,6 +206,8 @@ function ProjectileRayCast::onCollision(%this, %col, %position, %normal)
         }
     }
 
+    %col.onProjectileHit(%this, %this.client);
+
     if (isObject(%this.damageRef) && isFunction(%this.damageRef.getName(), "onCollision"))
         return %this.damageRef.onCollision(%this, %col, %position, %normal);
 
