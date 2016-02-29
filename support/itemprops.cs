@@ -10,6 +10,13 @@ function Player::getItemProps(%this, %slot)
 
 	if (!isObject(%this.tool[%slot]))
 		return 0;
+	if (!isObject(%this.itemProps[%slot]))
+		%this.itemProps[%slot] = %this.tool[%slot].newItemProps(%this, %slot);
+	else if (%this.itemProps[%slot].sourceItemData != %this.tool[%slot])
+		announce("BUG ALERT BUG ALERT: " @ %this.tool[%slot].getName() @ " has props for " @ %this.itemProps[%slot].sourceItemData.getName());
+
+	return %this.itemProps[%slot];
+}
 
 	if (!isObject(%this.itemProps[%slot]))
 		%this.itemProps[%slot] = %this.tool[%slot].newItemProps(%this, %slot);
@@ -19,6 +26,15 @@ function Player::getItemProps(%this, %slot)
 	return %this.itemProps[%slot];
 }
 
+
+function Item::getItemProps(%this)
+{
+	if (!isObject(%this.itemProps))
+		%this.itemProps = %this.getDataBlock().newItemProps();
+
+	return %this.itemProps;
+}
+
 function ItemData::newItemProps(%this, %player, %slot)
 {
 	%props = new ScriptObject()
@@ -26,7 +42,7 @@ function ItemData::newItemProps(%this, %player, %slot)
 		class = %this.itemPropsClass;
 		superClass = "ItemProps";
 
-		sourceItemData = %this;
+		sourceItemData = %this.getId();
 		sourcePlayer = %player;
 		sourceClient = %player.client;
 
