@@ -322,16 +322,16 @@ function MicroUziImage::damage(%this, %obj, %col, %position, %normal)
 	%col.damage(%obj, %position, %damage, %damageType);
 }
 
-function MicroUziImage::getDebugText(%this, %obj, %slot)
-{
-    %props = %obj.getItemProps();
+// function MicroUziImage::getDebugText(%this, %obj, %slot)
+// {
+//     %props = %obj.getItemProps();
 
-    %text = "\c6" @ (%props.loaded ? "loaded" : "empty");
-    %text = %text SPC (isObject(%props.magazine) ? "mag=" @ %props.magazine.count : "no-mag");
-    %text = %text SPC "state=" @ %obj.getImageState(%slot);
+//     %text = "\c6" @ (%props.loaded ? "loaded" : "empty");
+//     %text = %text SPC (isObject(%props.magazine) ? "mag=" @ %props.magazine.count : "no-mag");
+//     %text = %text SPC "state=" @ %obj.getImageState(%slot);
 
-    return %text;
-}
+//     return %text;
+// }
 
 function MicroUziImage::getGunHelp(%this, %obj, %slot)
 {

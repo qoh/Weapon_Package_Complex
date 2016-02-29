@@ -111,6 +111,31 @@ function Player::findMagazine(%this, %item)
 	return %bestSlot;
 }
 
+function Player::findMagazineByBullet(%this, %item)
+{
+	%maxTools = %this.getDataBlock().maxTools;
+
+	%bestSlot = -1;
+
+	for (%i = 0; %i < %maxTools; %i++)
+	{
+		%props = %this.getItemProps(%i);
+		if (%props.class $= "MagazineProps" && %props.sourceItemData.bulletType == %item.bulletType)
+		{
+			if (%props.count < %props.capacity && (%props.count < %lastCount || %lastCount $= ""))
+			{
+				%bestSlot = %i;
+				%bestCount = %props.count;
+			}
+			else if (%bestSlot == -1)
+				%bestSlot = -2;
+			%lastCount = %props.count;
+		}
+	}
+
+	return %bestSlot;
+}
+
 function SimpleMagWeaponProps::onRemove(%this)
 {
 	if (isObject(%this.magazine))
@@ -183,6 +208,8 @@ datablock ItemData(MagazineItem_45ACP_x7)
 	magWeapon = Colt1911Item;
 	magType = "extended detachable box magazine";
 
+	bulletType = ".45";
+
 	shellCollisionThreshold = 2;
 	shellCollisionSFX = WeaponSoftImpactSFX;
 
@@ -200,6 +227,8 @@ datablock ItemData(MagazineItem_M24A1 : MagazineItem_45ACP_x7)
 	magWeapon = M24RifleItem;
 	magType = "internal magazine";
 
+	bulletType = ".30-06";
+
 	cartName = "7.62x51mm NATO";
 	cartWeight = 10;
 };
@@ -213,6 +242,8 @@ datablock ItemData(MagazineItem_45ACP_x20_SMG : MagazineItem_45ACP_x7)
 	magSize = 50;
 	magWeapon = ThompsonItem;
 	magType = "drum magazine";
+
+	bulletType = ".45";
 
 	cartName = ".45 ACP (11.43x23mm)";
 	cartWeight = 15;
@@ -228,6 +259,8 @@ datablock ItemData(MagazineItem_3006_x8 : MagazineItem_45ACP_x7)
 	magWeapon = M1GarandItem;
 	magType = "en-bloc clip";
 
+	bulletType = ".30-06";
+
 	cartName = ".30-06 Springfield (7.62x63mm)";
 	cartWeight = 12;
 };
@@ -241,6 +274,8 @@ datablock ItemData(MagazineItem_MicroUzi : MagazineItem_45ACP_x7)
     magSize = 20;
     magWeapon = MicroUziItem;
     magType = "magazine";
+
+    bulletType = ".45";
 
     cartName = "9×19mm Parabellum";
     cartWeight = 15; //Todo: check if this weight is correct
@@ -256,6 +291,8 @@ datablock ItemData(MagazineItem_MicroUziExtended : MagazineItem_45ACP_x7)
 	magSize = 32;
 	magWeapon = MicroUziItem;
 	magType = "extended magazine";
+
+	bulletType = ".45";
 
 	cartName = "9×19mm Parabellum";
 	cartWeight = 15; //Todo: check if this weight is correct

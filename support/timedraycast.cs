@@ -111,8 +111,6 @@ function TimedRayCast::step(%this, %i, %prevTime)
     %this.schedule(%this.tickInterval, "step", %i + 1, $Sim::Time);
 }
 
-exec("Add-Ons/Weapon_RayGun/shapes/debug/init.cs");
-
 $color0 = "1 0 0";
 $color1 = "1 1 0";
 $color2 = "0 1 0";
@@ -206,10 +204,20 @@ function ProjectileRayCast::onCollision(%this, %col, %position, %normal)
         }
     }
 
-    %col.onProjectileHit(%this, %this.client);
+    if (%col.hasMethod("onProjectileHit"))
+        %col.onProjectileHit(%this, %this.client);
 
     if (isObject(%this.damageRef) && isFunction(%this.damageRef.getName(), "onCollision"))
         return %this.damageRef.onCollision(%this, %col, %position, %normal);
 
     return false;
+}
+
+function SimObject::hasMethod(%this, %name)
+{
+    return (
+        isFunction(%this.class, %name) ||
+        isFunction(%this.getName(), %name) ||
+        isFunction(%this.getClassName(), %name)
+    );
 }

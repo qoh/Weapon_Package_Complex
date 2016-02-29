@@ -93,6 +93,8 @@ datablock ItemData(RevolverItem)
 	shellCollisionThreshold = 2;
 	shellCollisionSFX = WeaponSoftImpactSFX;
 
+	bulletType = ".357";
+
 	itemPropsClass = "RevolverProps";
 };
 
@@ -223,29 +225,35 @@ function RevolverProps::onAdd(%this)
 		%this.slot[%i] = 0;
 }
 
-function RevolverImage::getDebugText(%this, %obj, %slot)
+// function RevolverImage::getDebugText(%this, %obj, %slot)
+// {
+// 	%props = %obj.getItemProps();
+// 	%text = "<font:lucida console:20>";
+// 	%state = %obj.getImageState(%slot);
+// 	if (%state $= "Opened" || %state $= "EjectShell")
+// 	{
+// 		for (%i = 0; %i < %props.currSlot; %i++)
+// 			%text = %text @ " ";
+
+// 		%text = %text @ "\c3_\n";
+// 		for (%i = 0; %i < 6; %i++)
+// 		{
+// 			switch (%props.slot[%i])
+// 			{
+// 				case 0: %text = %text @ "\c7o";
+// 				case 1: %text = %text @ "\c6o";
+// 				case 2: %text = %text @ "\c3o";
+// 				default: %text = %text @ "\c0o";
+// 			}
+// 		}
+// 	}
+// 	%text = %text SPC "<font:Arial:20>\c6.357\c3:" SPC %obj.bulletCount[%this.item.bulletType];
+// }
+
+function RevolverImage::onMount(%this, %obj, %slot)
 {
-	%props = %obj.getItemProps();
-	%text = "<font:lucida console:20>";
-
-	for (%i = 0; %i < %props.currSlot; %i++)
-		%text = %text @ " ";
-
-	%text = %text @ "\c3_\n";
-	%state = %obj.getImageState(%slot);
-	if (%state $= "Opened" || %state $= "EjectShell")
-	{
-		for (%i = 0; %i < 6; %i++)
-		{
-			switch (%props.slot[%i])
-			{
-				case 0: %text = %text @ "\c7o";
-				case 1: %text = %text @ "\c6o";
-				case 2: %text = %text @ "\c3o";
-				default: %text = %text @ "\c0o";
-			}
-		}
-	}
+	if (%obj.bulletCount[%this.item.bulletType] $= "")
+		%obj.bulletCount[%this.item.bulletType] = 0;
 }
 
 function RevolverImage::onCheckChamber(%this, %obj, %slot)
@@ -258,36 +266,60 @@ function RevolverImage::onOpening(%this, %obj, %slot)
 {
 	%obj.playThread(2, "shiftLeft");
 	serverPlay3D(RevolverOpenSound, %obj.getMuzzlePoint(%slot));
+	if (isObject(%obj.client))
+		%obj.client.updateDetailedGunHelp();
 }
 
 function RevolverImage::onClosing(%this, %obj, %slot)
 {
 	%obj.playThread(2, "shiftRight");
 	serverPlay3D(RevolverCloseSound, %obj.getMuzzlePoint(%slot));
+	if (isObject(%obj.client))
+		%obj.client.updateDetailedGunHelp();
 }
 
 function RevolverImage::onTrigger(%this, %obj, %slot, %trigger, %state)
 {
 	%props = %obj.getItemProps();
 
-	if (!%state || %obj.getImageState(%slot) !$= "Opened")
+	if (%obj.getImageState(%slot) !$= "Opened")
 		return 0;
 
 	if (%trigger == 0)
 	{
-		if (%props.slot[%props.currSlot] == 0)
-		{
-			%this.insertSFX.play(%obj.getMuzzlePoint(%slot));
-			%props.slot[%props.currSlot] = 1;
-			%obj.playThread(2, "plant");
-		}
-
-		%props.currSlot = (%props.currSlot + 1) % 6;
+		if(%state)
+			%obj.revolverAmmoLoop(%this);
+		else
+			cancel(%obj.revolverAmmoLoop);
 	}
-	else if (%trigger == 4)
+	else if (%trigger == 4 && %state)
 	{
-		%obj.setImageLoaded(%slot, true);
+		%loaded = false;
+		for (%i = 0; %i < 6; %i++)
+		{
+			if (%props.slot[%i] != 0)
+			{
+				%loaded = true;
+				break;
+			}
+		}
+		if (%loaded)
+			%obj.setImageLoaded(%slot, true);
 	}
+}
+function Player::revolverAmmoLoop(%this, %image) //This lets you hold left click to fill up the barrel.
+{
+	cancel(%this.revolverAmmoLoop);
+	if(%this.getMountedImage(0) != %image)
+		return;
+
+	%state = %this.getImageState(0);
+	if(%state !$= "Opened")
+		return;
+
+	if (%this.getMountedImage(0).InsertShell(%this))
+		%this.playThread(2, "plant");
+	%this.revolverAmmoLoop = %this.schedule(150, revolverAmmoLoop, %image);
 }
 
 function RevolverImage::onLight(%this, %obj, %slot)
@@ -299,10 +331,8 @@ function RevolverImage::onLight(%this, %obj, %slot)
 
 		%obj.setImageAmmo(%slot, !%obj.getImageAmmo(%slot));
 		%obj.setImageLoaded(%slot, false);
-
-		return 1;
 	}
-	return 0;
+	return 1; //We kinda HAVE to do this so you don't turn on light while reloading. You still can't turn on light when in Ready state anyway.
 }
 
 function RevolverImage::onEmptyFire(%this, %obj, %slot)
@@ -312,6 +342,8 @@ function RevolverImage::onEmptyFire(%this, %obj, %slot)
 
 	%props = %obj.getItemProps();
 	%props.currSlot = (%props.currSlot + 1) % 6;
+	if (isObject(%obj.client))
+		%obj.client.updateDetailedGunHelp();
 }
 
 function RevolverImage::onFire(%this, %obj, %slot)
@@ -331,6 +363,9 @@ function RevolverImage::onFire(%this, %obj, %slot)
 
 	%obj.applyComplexKnockback(1.75);
 	%obj.applyComplexScreenshake(1);
+
+	if (isObject(%obj.client))
+		%obj.client.updateDetailedGunHelp();
 }
 
 function RevolverImage::onSuicide(%this, %obj, %slot)
@@ -394,9 +429,19 @@ function RevolverImage::onEjectShell(%this, %obj, %slot)
 		%obj.ejectShell(Bullet357Item, 0.5, %props.slot[%props.currSlot] == 2);
 		%props.slot[%props.currSlot] = 0;
 	}
-
+	%loaded = false;
+	for (%i = 0; %i < 6; %i++)
+	{
+		if (%props.slot[%i] != 0)
+		{
+			%loaded = true;
+			break;
+		}
+	}
 	%props.currSlot = (%props.currSlot + 1) % 6;
-	%obj.setImageLoaded(%slot, %props.slot[%props.currSlot] != 0);
+	%obj.setImageLoaded(%slot, %loaded);
+	if (isObject(%obj.client))
+		%obj.client.updateDetailedGunHelp();
 }
 
 function RevolverImage::damage(%this, %obj, %col, %position, %normal)
@@ -425,14 +470,138 @@ function RevolverImage::damage(%this, %obj, %col, %position, %normal)
 function RevolverImage::getGunHelp(%this, %obj, %slot)
 {
 	%props = %obj.getItemProps();
-	return "How the hell do you expect me to make gun help for a /revolver/?! Jesus Christ.";
+
+	return "Gun Help for Revolver is work in progress.";
 }
 
-function Player::revolverInput(%this, %x, %y, %z)
+function RevolverImage::getDetailedGunHelp(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+
+	%text = "<just:center><font:Arial:20>\c6.357\c3:" SPC %obj.bulletCount[%this.item.bulletType];
+
+	%kt_lmb = "Primary";
+	%kt_rmb = "Jet    ";
+	%kt_r   = "Light  ";
+
+	%at_fire     = "Attempt Fire";
+	%at_magazine = "Open Chamber";
+
+	%ac_fire     = "\c6";
+	%ac_magazine = "\c6";
+
+	//Optional
+	%kt_sl	= "ShiftL.";
+	%kt_sr	= "ShiftR.";
+
+	%ac_sl	= "\c7";
+	%ac_sr	= "\c7";
+
+	%at_sl	= "Spin Left";
+	%at_sr	= "Spin Right";
+
+	%state = %obj.getImageState(%slot);
+	if (%state $= "Opening" || %state $= "Opened" || %state $= "ShellCheck" || %state $= "EjectShell")
+	{
+		%at_magazine = "Close Chamber";
+		%at_fire = "Insert Shell ";
+		%at_action = "Eject Shells ";
+		%ac_action = "\c7";
+		%full = true;
+		%spent = false;
+		for (%i = 0; %i < 6; %i++)
+		{
+			if (%props.slot[%i] == 2)
+				%spent = true;
+			if (%props.slot[%i] == 0)
+				%full = false;
+		}
+		if (%spent)
+			%ac_action = "\c6";
+		if (%full)
+			%ac_fire = "\c7";
+		if (%obj.bulletCount[%this.item.bulletType] <= 0)
+			%ac_fire = "\c7";
+
+		%text = %text @ "<just:right><font:consolas:16>";
+		%text = %text @ %ac_fire     @ %at_fire     @ "   " @ %kt_lmb @ " \n";
+		%text = %text @ %ac_magazine @ %at_magazine @ "   " @ %kt_r   @ " \n";
+		%text = %text @ %ac_action   @ %at_action   @ "   " @ %kt_rmb @ " \n";
+
+		%color[0] = "\c8";
+		%color[1] = "\c6";
+		%color[2] = "\c3";
+
+		for ( %i = 0; %i <= 5; %i++ ) {
+			%start[%i] = %color[%props.slot[%i]];
+
+			if ( %i == %props.currSlot ) {
+				if (%props.slot[%i] == 0)
+					%start[%i] = "\c7";
+				%start[%i] = "<shadow:0:3>" @ %start[%i];
+				%end[%i] = "<shadow:0:0>";
+			}
+		}
+		%text = %text @ "<just:center><font:Arial:35>";
+		%text = %text @ %start[1] @		"O" @ %end[1] @ " " @ %start[2] @ "O" @ %end[2] @ "\n";
+		%text = %text @ %start[0] @	"O" @ %end[0] @   "     " @ %start[3] @ "O" @ %end[3] @ "\n";
+		%text = %text @ %start[5] @		"O" @ %end[5] @ " " @ %start[4] @ "O" @ %end[4];
+		return %text;
+	}
+	%text = %text @"<just:right><font:consolas:16>";
+	%text = %text @ %ac_fire     @ %at_fire     @ "   " @ %kt_lmb @ " \n";
+	%text = %text @ %ac_magazine @ %at_magazine @ "   " @ %kt_r   @ " \n";
+	%text = %text @ %ac_sl @ %at_sl @ "   " @ %kt_sl	@ " \n";
+	%text = %text @ %ac_sr @ %at_sr @ "   " @ %kt_sr	@ " \n";
+	return %text;
+}
+
+
+function RevolverImage::InsertShell(%this, %obj, %slot)
+{
+	%props = %obj.getItemProps();
+	if (%obj.bulletCount[%this.item.bulletType] < 1)
+		return 0;
+
+	%empty = false;
+	for (%i = 0; %i < 6; %i++)
+	{
+		if (%props.slot[%i] == 0)
+			%empty = true;
+	}
+	if (!%empty) return 0;
+
+	if (%props.slot[%props.currSlot] == 0)
+	{
+		%obj.getMountedImage(0).insertSFX.play(%obj.getMuzzlePoint(0));
+		%props.slot[%props.currSlot] = 1;
+		%obj.bulletCount[%this.item.bulletType]--;
+	}
+	%props.currSlot = (%props.currSlot + 1) % 6;
+	if (isObject(%obj.client))
+		%obj.client.updateDetailedGunHelp();
+	return 1;
+}
+
+function Player::revolverInput(%this, %x, %y, %z, %rot)
 {
 	%props = %this.getItemProps();
-
-	if (%x == 0 && %y == -1 && %z == 0)
+	%state = %this.getImageState(0);
+	if (%x == 1 && %y == 0 && %z == 0)
+	{
+		%loaded = false;
+		for (%i = 0; %i < 6; %i++)
+		{
+			if (%props.slot[%i] != 0)
+			{
+				%loaded = true;
+				break;
+			}
+		}
+		if (%loaded)
+			%this.setImageLoaded(%slot, true);
+	}
+	else if (%x == 0 && %y == -1 && %z == 0)
 	{
 		%props.currSlot = (%props.currSlot + 1) % 6;
 		%playSound = true;
@@ -444,8 +613,28 @@ function Player::revolverInput(%this, %x, %y, %z)
 		%playSound = true;
 		%playThread = "rotCCW";
 	}
-
-	%state = %this.getImageState(0);
+	else if (%x == 0 && %y == 0 && %z == -3 && %this.getImageState(0) $= "Opened")
+	{
+		if($Sim::Time - %this.lastBulletInsert < 0.1)
+			return;
+		%this.lastBulletInsert = $Sim::Time;
+		if (%this.getMountedImage(0).InsertShell(%this))
+			%playThread = "plant";
+	}
+	else if (%rot)
+	{
+		if (%props.slot[%props.currSlot] != 0 && %state $= "Opened")
+		{
+			if (%props.slot[%props.currSlot] == 1)
+			{
+				%this.bulletCount[%this.getMountedImage(0).item.bulletType]++;
+				%this.getMountedImage(0).insertSFX.play(%this.getMuzzlePoint(0));
+			}
+			else
+				%this.ejectShell(Bullet357Item, 0.5, 1);
+			%props.slot[%props.currSlot] = 0;
+		}
+	}
 
 	if (%state $= "Ready" || %state $= "Empty")
 		%this.setImageLoaded(0, %props.slot[%props.currSlot] == 1);
@@ -461,6 +650,8 @@ function Player::revolverInput(%this, %x, %y, %z)
 		%this.playThread(2, %playThread);
 		%this.lastRevolverSpinThread = $Sim::Time;
 	}
+	if (isObject(%this.client))
+		%this.client.updateDetailedGunHelp();
 }
 
 package RevolverInputPackage
@@ -489,6 +680,19 @@ package RevolverInputPackage
 			return Parent::serverCmdSuperShiftBrick(%client, %x, %y, %z);
 
 		%player.revolverInput(%x, %y, %z);
+	}
+
+	function serverCmdRotateBrick(%client, %rot)
+	{
+		%player = %client.player;
+
+		if (!isObject(%player))
+			return Parent::serverCmdRotateBrick(%client, %rot);
+
+		if (!%player.getMountedImage(0).isRevolver)
+			return Parent::serverCmdRotateBrick(%client, %rot);
+
+		%player.revolverInput(0,0,0,%rot);
 	}
 };
 

@@ -50,6 +50,8 @@ datablock ItemData(ColtWalkerItem)
 	shellCollisionThreshold = 2;
 	shellCollisionSFX = WeaponHardImpactSFX;
 
+	bulletType = ".357";
+
 	itemPropsClass = "RevolverProps";
 };
 
@@ -159,7 +161,7 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 	stateName[13] = "EjectShell";
 	stateScript[13] = "onEjectShell";
 	stateSequence[13] = "EjectShell";
-	stateTimeoutValue[13] = 0.2;
+	stateTimeoutValue[13] = 0.04;
 	stateTransitionOnTimeout[13] = "ShellCheck";
 
 	stateName[19] = "CheckTrigger";
@@ -205,10 +207,8 @@ function ColtWalkerImage::onLight(%this, %obj, %slot)
 
 		%obj.setImageAmmo(%slot, !%obj.getImageAmmo(%slot));
 		%obj.setImageLoaded(%slot, false);
-
-		return 1;
 	}
-	return 0;
+	return 1; //We kinda HAVE to do this so you don't turn on light while reloading. You still can't turn on light when in Ready state anyway.
 }
 
 
@@ -271,4 +271,14 @@ function ColtWalkerImage::damage(%this, %obj, %col, %position, %normal)
 function ColtWalkerImage::getGunHelp(%this, %obj, %slot)
 {
 	return RevolverImage::getGunHelp(%this, %obj, %slot);
+}
+
+function ColtWalkerImage::getDetailedGunHelp(%this, %obj, %slot)
+{
+	return RevolverImage::getDetailedGunHelp(%this, %obj, %slot);
+}
+
+function ColtWalkerImage::InsertShell(%this, %obj, %slot)
+{
+	RevolverImage::InsertShell(%this, %obj, %slot);
 }
