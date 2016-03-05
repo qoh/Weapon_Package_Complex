@@ -18,15 +18,6 @@ function Player::getItemProps(%this, %slot)
 	return %this.itemProps[%slot];
 }
 
-	if (!isObject(%this.itemProps[%slot]))
-		%this.itemProps[%slot] = %this.tool[%slot].newItemProps(%this, %slot);
-	else if (%this.itemProps[%slot].sourceItemData != %this.tool[%slot])
-		announce("BUG ALERT BUG ALERT: " @ %this.tool[%slot].getName() @ " has props for " @ %this.itemProps[%slot].sourceItemData.getName());
-
-	return %this.itemProps[%slot];
-}
-
-
 function Item::getItemProps(%this)
 {
 	if (!isObject(%this.itemProps))

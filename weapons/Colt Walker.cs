@@ -120,7 +120,7 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 	stateTimeoutValue[6] = 0.3;
 	stateWaitForTimeout[6] = true;
 	stateAllowImageChange[6] = false;
-	stateTransitionOnTimeout[6] = "CheckTrigger"; //Alright, delay passed, let's check if the dude released the trigger yet
+	stateTransitionOnTimeout[6] = "HammerUp"; //Alright, delay passed, let's check if the dude released the trigger yet
 
 	stateName[7] = "HammerUp";
 	stateTransitionOnAmmo[7] = "Opening";
@@ -164,8 +164,8 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 	stateTimeoutValue[13] = 0.04;
 	stateTransitionOnTimeout[13] = "ShellCheck";
 
-	stateName[19] = "CheckTrigger";
-	stateTransitionOnTriggerUp[19] = "HammerUp";
+	// stateName[19] = "CheckTrigger";
+	// stateTransitionOnTriggerUp[19] = "HammerUp";
 
 	stateName[20] = "CheckChamber";
 	stateScript[20] = "onCheckChamber";
@@ -173,9 +173,9 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 	stateTransitionOnTimeout[20] = "Empty";
 };
 
-function ColtWalkerImage::getDebugText(%this, %obj, %slot)
+function ColtWalkerImage::onMount(%this, %obj, %slot)
 {
-	return RevolverImage::getDebugText(%this, %obj, %slot);
+	RevolverImage::onMount(%this, %obj, %slot);
 }
 
 function ColtWalkerImage::onCheckChamber(%this, %obj, %slot)
@@ -222,7 +222,9 @@ function ColtWalkerImage::onFire(%this, %obj, %slot)
 	if (%obj.getState() $= "Dead")
 		return;
 
-	Parent::onFire(%this, %obj, %slot);
+	if(!%obj.suiciding) //If we're not firing through suicide
+		Parent::onFire(%this, %obj, %slot);
+	%obj.suiciding = ""; //reset the var, just in case
 	%props = %obj.getItemProps();
 	%props.slot[%props.currSlot] = 2;
 	%props.currSlot = (%props.currSlot + 1) % 6;
@@ -232,11 +234,61 @@ function ColtWalkerImage::onFire(%this, %obj, %slot)
 
 	%obj.applyComplexKnockback(2.5);
 	%obj.applyComplexScreenshake(2);
+
+	if (isObject(%obj.client))
+		%obj.client.updateDetailedGunHelp();
 }
 
 function ColtWalkerImage::onSuicide(%this, %obj, %slot)
 {
-	RevolverImage::onSuicide(%this, %obj, %slot);
+	%image = %obj.getMountedImage(%slot);
+	%state = %obj.getImageState(%slot);
+	if(%state !$= "Ready" && %state !$= "Empty")
+	{
+		return 1;
+	}
+	%props = %obj.getItemProps();
+	if(%props.slot[%props.currSlot] != 1) //Either spent or empty
+	{
+		%obj.setImageTrigger(%slot, 1);
+		%obj.playThread(2, plant);
+		serverPlay3d(RevolverClickSound, %obj.getHackPosition());
+	}
+	else
+	{
+		//What you're about to see below is probably the ugliest thing I ever coded. ~Jack Noir
+		%obj.playThread(2, shiftRight);
+		%obj.playThread(3, shiftLeft);
+		%obj.applyComplexKnockback(5);
+		%props.slot[%props.currSlot] = 2;
+		serverplay3d(ColtWalkerFireSound, %obj.getMuzzlePoint(%slot));
+		%obj.suiciding = 1;
+		%obj.setImageTrigger(%slot, 1);
+		%proj = new ScriptObject()
+		{	
+			class = "ProjectileRayCast";
+			superClass = "TimedRayCast";
+
+			position = %obj.getEyePoint();
+			velocity = "0 0 0";
+
+			lifetime = %this.fireLifetime;
+			gravity = %this.fireGravity;
+
+			mask = %this.fireMask $= "" ? $TypeMasks::PlayerObjectType | $TypeMasks::FxBrickObjectType | $TypeMasks::TerrainObjectType : %this.fireMask;
+			exempt = "";
+			sourceObject = %obj;
+			sourceClient = %obj.client;
+			damage = %this.directDamage;
+			damageType = %this.directDamageType;
+			damageRef = %this;
+			hitExplosion = %this.projectile;
+		};
+		MissionCleanup.add(%proj);
+		%obj.setDamageLevel(%obj.getDataBlock().maxDamage - 1); //Set their HP to 1 so headshot will be a guaranteed instakill
+		%proj.fire();
+	}
+	return 1;
 }
 
 

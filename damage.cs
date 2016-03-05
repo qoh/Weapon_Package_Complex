@@ -68,4 +68,4 @@ package DamageIndicatorPackage
   }
 };
 
-activatePackage("DamageIndicatorPackage");
+// activatePackage("DamageIndicatorPackage");

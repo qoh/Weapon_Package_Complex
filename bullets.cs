@@ -195,6 +195,9 @@ package ComplexBulletPackage
 			if (!%data.isBullet || %col.isSpent)
 				continue;
 
+			if (%this.bulletCount[%data.bulletType] == -1) //Infinite ammo detected
+				continue;
+
 			if (%amt = getField(%func = %this.addBullets(%data, 1), 0) > 0)
 			{
 				RevolverInsertSFX.play(getWords(%col.getTransform(), 0, 2));

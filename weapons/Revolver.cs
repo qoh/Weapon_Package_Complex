@@ -478,7 +478,8 @@ function RevolverImage::getDetailedGunHelp(%this, %obj, %slot)
 {
 	%props = %obj.getItemProps();
 
-	%text = "<just:center><font:Arial:20>\c6.357\c3:" SPC %obj.bulletCount[%this.item.bulletType];
+	if (%obj.bulletCount[%this.item.bulletType] != -1)
+		%text = "<just:center><font:Arial:20>\c6.357\c3:" SPC %obj.bulletCount[%this.item.bulletType];
 
 	%kt_lmb = "Primary";
 	%kt_rmb = "Jet    ";
@@ -520,7 +521,7 @@ function RevolverImage::getDetailedGunHelp(%this, %obj, %slot)
 			%ac_action = "\c6";
 		if (%full)
 			%ac_fire = "\c7";
-		if (%obj.bulletCount[%this.item.bulletType] <= 0)
+		if (%obj.bulletCount[%this.item.bulletType] <= 0 && %obj.bulletCount[%this.item.bulletType] != -1)
 			%ac_fire = "\c7";
 
 		%text = %text @ "<just:right><font:consolas:16>";
@@ -560,7 +561,7 @@ function RevolverImage::getDetailedGunHelp(%this, %obj, %slot)
 function RevolverImage::InsertShell(%this, %obj, %slot)
 {
 	%props = %obj.getItemProps();
-	if (%obj.bulletCount[%this.item.bulletType] < 1)
+	if (%obj.bulletCount[%this.item.bulletType] < 1 && %obj.bulletCount[%this.item.bulletType] != -1)
 		return 0;
 
 	%empty = false;
@@ -575,7 +576,8 @@ function RevolverImage::InsertShell(%this, %obj, %slot)
 	{
 		%obj.getMountedImage(0).insertSFX.play(%obj.getMuzzlePoint(0));
 		%props.slot[%props.currSlot] = 1;
-		%obj.bulletCount[%this.item.bulletType]--;
+		if (%obj.bulletCount[%this.item.bulletType] != -1)
+			%obj.bulletCount[%this.item.bulletType]--;
 	}
 	%props.currSlot = (%props.currSlot + 1) % 6;
 	if (isObject(%obj.client))
@@ -627,7 +629,8 @@ function Player::revolverInput(%this, %x, %y, %z, %rot)
 		{
 			if (%props.slot[%props.currSlot] == 1)
 			{
-				%this.bulletCount[%this.getMountedImage(0).item.bulletType]++;
+				if (%this.bulletCount[%this.getMountedImage(0).item.bulletType] != -1)
+					%this.bulletCount[%this.getMountedImage(0).item.bulletType]++;
 				%this.getMountedImage(0).insertSFX.play(%this.getMuzzlePoint(0));
 			}
 			else

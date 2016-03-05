@@ -225,13 +225,14 @@ function Remington870Image::onLight(%this, %obj, %slot)
 	%props = %obj.getItemProps();
 	%state = %obj.getImageState(%slot);
 
-	if (%props.count < 6 && (%state $= "Ready" || %state $= "Empty") && %obj.bulletCount[%this.item.bulletType] >= 1)
+	if (%props.count < 6 && (%state $= "Ready" || %state $= "Empty") && (%obj.bulletCount[%this.item.bulletType] >= 1 || %obj.bulletCount[%this.item.bulletType] == -1))
 	{
 		if ($Sim::Time - %obj.lastRemingtonInsert <= 0.2)
 			return 1;
 
 		%obj.lastRemingtonInsert = $Sim::Time;
-		%obj.bulletCount[%this.item.bulletType]--;
+		if (%obj.bulletCount[%this.item.bulletType] != -1)
+			%obj.bulletCount[%this.item.bulletType]--;
 		%props.count++;
 		%obj.playThread(2, "plant");
 		serverPlay3D(Remington870InsertSound, %obj.getMuzzlePoint(%slot));
@@ -287,7 +288,8 @@ function Remington870Image::getDetailedGunHelp(%this, %obj, %slot)
 {
 	%props = %obj.getItemProps();
 
-	%text = "<just:center><font:Arial:20>\c6Buckshot\c3:" SPC %obj.bulletCount[%this.item.bulletType];
+	if (%obj.bulletCount[%this.item.bulletType] != -1)
+		%text = "<just:center><font:Arial:20>\c6Buckshot\c3:" SPC %obj.bulletCount[%this.item.bulletType];
 
 	%kt_lmb = "Primary";
 	%kt_rmb = "Jet    ";
@@ -320,7 +322,7 @@ function Remington870Image::getDetailedGunHelp(%this, %obj, %slot)
 	if (%props.count < 6)
 		%ac_magazine = "\c6";
 
-	if (%obj.bulletCount[%this.item.bulletType] < 1)
+	if (%obj.bulletCount[%this.item.bulletType] < 1 && %obj.bulletCount[%this.item.bulletType] != -1)
 		%ac_magazine = "\c7";
 
 	%text = %text @ "<just:right><font:consolas:16>";

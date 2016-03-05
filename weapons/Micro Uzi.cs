@@ -457,10 +457,10 @@ function MicroUziEmptyImage::damage(%this, %obj, %col, %position, %normal)
 {
 	MicroUziImage::damage(%this, %obj, %col, %position, %normal);
 }
-function MicroUziEmptyImage::getDebugText(%this, %obj, %slot)
-{
-	MicroUziImage::getDebugText(%this,%obj,%slot);
-}
+// function MicroUziEmptyImage::getDebugText(%this, %obj, %slot)
+// {
+// 	MicroUziImage::getDebugText(%this,%obj,%slot);
+// }
 function MicroUziEmptyImage::getGunHelp(%this, %obj, %slot)
 {
 	MicroUziImage::getGunHelp(%this,%obj,%slot);

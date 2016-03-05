@@ -136,11 +136,11 @@ datablock ExplosionData(HEGrenadeBlastExplosion)
 	lightStartColor = "0.45 0.3 0.1";
 	lightEndColor = "0 0 0";
 
-	impulseRadius = 17;
-	impulseForce = 4000;
+	impulseRadius = 16;
+	impulseForce = 3000;
 
-	damageRadius = 16;
-	radiusDamage = 200;
+	damageRadius = 14;
+	radiusDamage = 150;
 };
 
 datablock ProjectileData(HEGrenadeBlastProjectile)
@@ -150,11 +150,11 @@ datablock ProjectileData(HEGrenadeBlastProjectile)
 	directDamageType = $DamageType::RocketDirect;
 	radiusDamageType = $DamageType::RocketRadius;
 
-	brickExplosionRadius = 10;
+	brickExplosionRadius = 8;
 	brickExplosionImpact = false;
 	brickExplosionForce = 25;
-	brickExplosionMaxVolume = 100;
-	brickExplosionMaxVolumeFloating = 60;
+	brickExplosionMaxVolume = 64;
+	brickExplosionMaxVolumeFloating = 100;
 };
 
 datablock ProjectileData(HEGrenadeProjectile)
