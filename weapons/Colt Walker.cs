@@ -79,7 +79,7 @@ datablock ShapeBaseImageData(ColtWalkerImage)
 	stateName[0] = "Activate";
 	stateTimeoutValue[0] = 0.4;
 	stateAllowImageChange[0] = false;
-	stateTransitionOnTimeout[0] = "CheckChamber";
+	stateTransitionOnTimeout[0] = "HammerUp";
 
 	stateName[2] = "Empty";
 	stateTransitionOnLoaded[2] = "Ready";
