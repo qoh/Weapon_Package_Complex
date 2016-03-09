@@ -16,6 +16,8 @@ datablock ItemData(Bullet45Item)
 
 	shellCollisionThreshold = 2;
 	shellCollisionSFX = GenericShellSFX;
+
+	amount = 1;
 };
 
 datablock ItemData(Bullet357Item : Bullet45Item)
@@ -27,6 +29,15 @@ datablock ItemData(Bullet357Item : Bullet45Item)
 	playerCapacity = 36;
 	canPickup = false;
 };
+
+datablock ItemData(Bullet357PackItem : Bullet357Item)
+{
+	shapeFile = "./assets/shapes/items/357_pack.dts";
+	uiName = "AmmoPack: .357";
+	bulletType = ".357";
+	amount = 12;
+};
+
 
 datablock ItemData(Bullet30Item : Bullet45Item)
 {
@@ -48,6 +59,18 @@ datablock ItemData(BulletBuckshotItem : Bullet45Item)
 
 	shellCollisionSFX = BuckshotShellSFX;
 	spentShell = BulletBuckshotSpentItem;
+};
+
+datablock ItemData(BulletBuckshotPackItem : BulletBuckshotItem)
+{
+	shapeFile = "./assets/shapes/items/buckshot_pack.dts";
+	uiName = "AmmoPack: Buckshot";
+	bulletType = "Buckshot";
+
+	shellCollisionSFX = BuckshotShellSFX;
+	spentShell = BulletBuckshotSpentItem;
+
+	amount = 12;
 };
 
 datablock ItemData(BulletBuckshotSpentItem : BulletBuckshotItem)
@@ -198,7 +221,7 @@ package ComplexBulletPackage
 			if (%this.bulletCount[%data.bulletType] == -1) //Infinite ammo detected
 				continue;
 
-			if (%amt = getField(%func = %this.addBullets(%data, 1), 0) > 0)
+			if (%amt = getField(%func = %this.addBullets(%data, %data.amount), 0) > 0)
 			{
 				RevolverInsertSFX.play(getWords(%col.getTransform(), 0, 2));
 				if (isObject(%this.client))
