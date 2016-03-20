@@ -154,16 +154,16 @@ function Player::debugWeapon(%this)
     %this.debugWeapon = %this.schedule(50, "debugWeapon");
 }
 
-function serverCmdToggleGunHelp(%this, %tog)
+function serverCmdToggleGunHelp(%client, %tog)
 {
 	if(%tog $= "")
-		%tog = !%this.disableDetailedGunHelp;
+		%tog = !%client.disableDetailedGunHelp;
 	%tog = MClampF(%tog, 0, 1);
-	%this.disableDetailedGunHelp = %tog;
+	%client.disableDetailedGunHelp = %tog;
 	messageClient(%client, '', "\c4Gun Preferences\c6: You have " @ (%tog ? "enabled" : "disabled") @ " on-screen gun help.");
 }
 
-function serverCmdDiscardEmptyMagazines(%this, %val)
+function serverCmdDiscardEmptyMagazines(%client, %val)
 {
 	if(%val $= "")
 	{
@@ -172,7 +172,7 @@ function serverCmdDiscardEmptyMagazines(%this, %val)
 		return;
 	}
 	%val = MClampF(%val, 0, 2);
-	%this.discardEmptyMagazine = %val;
+	%client.discardEmptyMagazine = %val;
 	messageClient(%client, '', "\c4Gun Preferences\c6: " @ %text);
 }
 
