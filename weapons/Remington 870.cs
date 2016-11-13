@@ -284,7 +284,7 @@ function Remington870Image::getGunHelp(%this, %obj, %slot)
 	return "Your gun has bullets stored, but no bullet is chambered. Right click to pump the action and chamber the next bullet.";
 }
 
-function Remington870Image::getDetailedGunHelp(%this, %obj, %slot)
+function Remington870Image::getDetailedGunHelp(%this, %obj, %slot, %hidden)
 {
 	%props = %obj.getItemProps();
 
@@ -325,9 +325,12 @@ function Remington870Image::getDetailedGunHelp(%this, %obj, %slot)
 	if (%obj.bulletCount[%this.item.bulletType] < 1 && %obj.bulletCount[%this.item.bulletType] != -1)
 		%ac_magazine = "\c7";
 
-	%text = %text @ "<just:right><font:consolas:16>";
-	%text = %text @ %ac_fire     @ %at_fire     @ "   " @ %kt_lmb @ " \n";
-	%text = %text @ %ac_action   @ %at_action   @ "   " @ %kt_rmb @ " \n";
-	%text = %text @ %ac_magazine @ %at_magazine @ "   " @ %kt_r   @ " \n";
+	if (!%hidden)
+	{
+		%text = %text @ "<just:right><font:consolas:16>";
+		%text = %text @ %ac_fire     @ %at_fire     @ "   " @ %kt_lmb @ " \n";
+		%text = %text @ %ac_action   @ %at_action   @ "   " @ %kt_rmb @ " \n";
+		%text = %text @ %ac_magazine @ %at_magazine @ "   " @ %kt_r   @ " \n";
+	}
 	return %text;
 }

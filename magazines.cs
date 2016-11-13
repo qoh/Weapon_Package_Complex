@@ -164,6 +164,8 @@ function Player::displayMagazineStats(%this)
 {
 	if (%this.getMountedImage(0) == MagazineImage.getID() && isObject(%this.client))
 	{
+		if(%this.client.discardEmptyMagazine $= "")
+			%this.client.discardEmptyMagazine = 2; //default state
 		%props = %this.getItemProps();
 		%text = "<just:center><font:palatino linotype:30>\c3" @ %props.capacity @ "-round<font:palatino linotype:24>\c6 " @ %props.type @ "\n";
 		%text = %text @ "\c6Contains <font:palatino linotype:30>\c3" @ %props.count @ "x <font:palatino linotype:24>\c6" @ %props.name @ " (" @ %props.weight @ "g)\n";

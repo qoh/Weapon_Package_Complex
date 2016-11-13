@@ -82,13 +82,9 @@ datablock ItemData(M24RifleItem)
 	shellCollisionThreshold = 2;
 	shellCollisionSFX = WeaponHardImpactSFX;
 
-	itemPropsClass = "M24RifleProps";
+	itemPropsClass = "SimpleMagWeaponProps";
+	starterMag = MagazineItem_M24A1;
 };
-
-function M24RifleProps::onAdd(%this)
-{
-	%this.chamber = 0;
-}
 
 datablock ShapeBaseImageData(M24RifleImage)
 {
@@ -100,7 +96,7 @@ datablock ShapeBaseImageData(M24RifleImage)
 	speedScale = 0.6;
 
 	stateName[0] = "Activate";
-	stateTimeoutValue[0] = 0.3;
+	stateTimeoutValue[0] = 0;
 	stateTransitionOnTimeout[0] = "Ready";
 
 	stateName[1] = "Ready";
@@ -267,6 +263,8 @@ datablock ShapeBaseImageData(M24RifleScopeImage)
 function M24RifleScopeImage::onMount(%this, %obj, %slot)
 {
 	%props = %obj.getItemProps();
+	if (%props.chamber $= "")
+		%props.chamber = 0;
 	%obj.setImageLoaded(%slot, %props.chamber == 1);
 }
 
@@ -368,8 +366,9 @@ function M24RifleScopeImage::getGunHelp(%this, %obj, %slot)
 	return "No bullet is chambered in your gun. Stop using the scope first by tapping right click.";
 }
 
-function M24RifleImage::getDetailedGunHelp(%this, %obj, %slot)
+function M24RifleImage::getDetailedGunHelp(%this, %obj, %slot, %hidden)
 {
+	if (%hidden) return;
 	%props = %obj.getItemProps();
 
 	%kt_lmb = "Primary";
@@ -403,8 +402,9 @@ function M24RifleImage::getDetailedGunHelp(%this, %obj, %slot)
 	return %text;
 }
 
-function M24RifleScopeImage::getDetailedGunHelp(%this, %obj, %slot)
+function M24RifleScopeImage::getDetailedGunHelp(%this, %obj, %slot, %hidden)
 {
+	if (%hidden) return;
 	%props = %obj.getItemProps();
 
 	%kt_lmb = "Primary";

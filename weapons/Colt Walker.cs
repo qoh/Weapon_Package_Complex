@@ -325,9 +325,9 @@ function ColtWalkerImage::getGunHelp(%this, %obj, %slot)
 	return RevolverImage::getGunHelp(%this, %obj, %slot);
 }
 
-function ColtWalkerImage::getDetailedGunHelp(%this, %obj, %slot)
+function ColtWalkerImage::getDetailedGunHelp(%this, %obj, %slot, %hidden)
 {
-	return RevolverImage::getDetailedGunHelp(%this, %obj, %slot);
+	return RevolverImage::getDetailedGunHelp(%this, %obj, %slot, %hidden);
 }
 
 function ColtWalkerImage::InsertShell(%this, %obj, %slot)

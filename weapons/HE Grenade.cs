@@ -546,8 +546,9 @@ function HEGrenadeImage::getGunHelp(%this, %obj, %slot)
 	return "To throw a grenade, either hold left click or tap Ctrl+W. To prime a grenade, tap right click. It will explode 3 seconds after being primed.";
 }
 
-function HEGrenadeImage::getDetailedGunHelp(%this, %obj, %slot)
+function HEGrenadeImage::getDetailedGunHelp(%this, %obj, %slot, %hidden)
 {
+	if (%hidden) return;
 	%props = %obj.getItemProps();
 	%state = %obj.getImageState(%slot);
 

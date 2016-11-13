@@ -40,6 +40,7 @@ datablock ItemData(ThompsonItem)
 	shellCollisionSFX = WeaponHardImpactSFX;
 
 	itemPropsClass = "SimpleMagWeaponProps";
+	starterMag = MagazineItem_45ACP_x20_SMG;
 };
 
 function ThompsonItem::onAdd(%this, %obj)
@@ -318,8 +319,9 @@ function ThompsonImage::getGunHelp(%this, %obj, %slot)
 	return "Your gun has no magazine inserted. Press the light key to insert whichever magazine you have with the most bullets.";
 }
 
-function ThompsonImage::getDetailedGunHelp(%this, %obj, %slot)
+function ThompsonImage::getDetailedGunHelp(%this, %obj, %slot, %hidden)
 {
+	if (%hidden) return;
 	%props = %obj.getItemProps();
 
 	%kt_lmb = "Primary";
@@ -419,9 +421,9 @@ function ThompsonEmptyImage::getGunHelp(%this, %obj, %slot)
 {
 	ThompsonImage::getGunHelp(%this,%obj,%slot);
 }
-function ThompsonEmptyImage::getDetailedGunHelp(%this, %obj, %slot)
+function ThompsonEmptyImage::getDetailedGunHelp(%this, %obj, %slot, %hidden)
 {
-	ThompsonImage::getDetailedGunHelp(%this, %obj, %slot);
+	ThompsonImage::getDetailedGunHelp(%this, %obj, %slot, %hidden);
 }
 function ThompsonEmptyImage::onDrop(%this, %obj, %slot)
 {

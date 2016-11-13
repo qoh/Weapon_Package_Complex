@@ -61,6 +61,7 @@ datablock ItemData(Colt1911Item)
 	shellCollisionSFX = WeaponSoftImpactSFX;
 
 	itemPropsClass = "SimpleMagWeaponProps";
+	starterMag = MagazineItem_45ACP_x7;
 };
 
 datablock ShapeBaseImageData(Colt1911Image)
@@ -297,8 +298,9 @@ function Colt1911Image::getGunHelp(%this, %obj, %slot)
 	return "Your gun has no magazine inserted. Press the light key to insert whichever magazine you have with the most bullets.";
 }
 
-function Colt1911Image::getDetailedGunHelp(%this, %obj, %slot)
+function Colt1911Image::getDetailedGunHelp(%this, %obj, %slot, %hidden)
 {
+	if (%hidden) return;
 	%props = %obj.getItemProps();
 
 	%kt_lmb = "Primary";

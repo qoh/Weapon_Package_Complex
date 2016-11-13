@@ -39,6 +39,7 @@ datablock ItemData(M1GarandItem)
 	shellCollisionSFX = WeaponHardImpactSFX;
 
 	itemPropsClass = "SimpleMagWeaponProps";
+	starterMag = MagazineItem_3006_x8;
 };
 
 datablock ShapeBaseImageData(M1GarandImage)
@@ -273,8 +274,9 @@ function M1GarandImage::getGunHelp(%this, %obj, %slot)
 	return "Your gun has no magazine inserted. Press the light key to insert whichever magazine you have with the most bullets.";
 }
 
-function M1GarandImage::getDetailedGunHelp(%this, %obj, %slot)
+function M1GarandImage::getDetailedGunHelp(%this, %obj, %slot, %hidden)
 {
+	if (%hidden) return;
 	%props = %obj.getItemProps();
 
 	%kt_lmb = "Primary";

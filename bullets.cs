@@ -1,3 +1,6 @@
+if (!isObject(SpentShellGroup))
+	new SimSet(SpentShellGroup);
+
 datablock ItemData(Bullet45Item)
 {
 	shapeFile = "./assets/shapes/items/45_bullet.dts";
@@ -190,11 +193,66 @@ package ComplexBulletPackage
 			%item.canPickup = %this.canPickup;
 		if (isObject(%this.shellCollisionSFX))
 			%item.monitorCollisionSounds();
+		if (%item.isSpent)
+		{
+			if (!isObject(SpentShellGroup))
+				new SimSet(SpentShellGroup);
+			%item.spawnTime = getSimTime();
+			SpentShellGroup.add(%item);
+			while (SpentShellGroup.getCount() > $Pref::Server::ComplexWeapons::Optimization::ShellLimit)
+			{
+				//SpentShellGroup.getObject(0).delete(); //Simsets will reorder, so this is not viable
+				%count = SpentShellGroup.getCount();
+
+				for (%i = 0; %i < %count; %i++) {
+					%decal = SpentShellGroup.getObject(%i);
+
+					if (%decal.spawnTime < %best || %best $= "") {
+						%best = %decal.spawnTime;
+						%oldest = %decal;
+					}
+				}
+
+				if (isObject(%oldest)) {
+					%oldest.delete();
+				}
+			}
+		}
+	}
+
+	function ItemData::onPickup(%this, %item, %obj)
+	{
+		if (%this.isBullet)
+		{
+			if (%item.isSpent) return 0;
+			if (%amt = getField(%func = %obj.addBullets(%this, %this.amount), 0) > 0)
+			{
+				RevolverInsertSFX.play(getWords(%item.getTransform(), 0, 2));
+				if (isObject(%obj.client))
+				{
+					if ($Sim::Time - %obj.lastCenterPrint[%this.bulletType] <= 2)
+						%amt = %obj.lastAmt + %amt;
+					if (%this.useAmmoPool)
+						commandToClient(%obj.client, 'CenterPrint', "\c2+"@ %amt @"\c3 "@ %this.bulletType @" \c6bullets.\n\c6You now have \c3" @ %obj.bulletCount[%this.bulletType] @" bullets.", 2);
+					else
+						commandToClient(%obj.client, 'CenterPrint', "\c2+"@ %amt @"\c3 "@ %this.bulletType @" \c6bullets.", 2);
+					%obj.lastAmt = %amt;
+					%obj.lastCenterPrint[%this.bulletType] = $Sim::Time;
+				}
+				%typeamt[%this.bulletType] += %amt;
+				%item.delete();
+			}
+			return 0;
+		}
+
+		return Parent::onPickup(%this, %item, %obj);
 	}
 
 	function Player::activateStuff(%this)
 	{
 		Parent::activateStuff(%this);
+
+		return; //Disable this tidbit for now
 
 		%a = %this.getEyePoint();
 		%b = vectorAdd(%a, vectorScale(%this.getEyeVector(), 6));
@@ -221,23 +279,7 @@ package ComplexBulletPackage
 			if (%this.bulletCount[%data.bulletType] == -1) //Infinite ammo detected
 				continue;
 
-			if (%amt = getField(%func = %this.addBullets(%data, %data.amount), 0) > 0)
-			{
-				RevolverInsertSFX.play(getWords(%col.getTransform(), 0, 2));
-				if (isObject(%this.client))
-				{
-					if ($Sim::Time - %this.lastCenterPrint[%data.bulletType] <= 2)
-						%amt = %this.lastAmt + %amt;
-					if (%data.useAmmoPool)
-						commandToClient(%this.client, 'CenterPrint', "\c2+"@ %amt @"\c3 "@ %data.bulletType @" \c6bullets.\n\c6You now have \c3" @ %this.bulletCount[%data.bulletType] @" bullets.", 2);
-					else
-						commandToClient(%this.client, 'CenterPrint', "\c2+"@ %amt @"\c3 "@ %data.bulletType @" \c6bullets.", 2);
-					%this.lastAmt = %amt;
-					%this.lastCenterPrint[%data.bulletType] = $Sim::Time;
-				}
-				%typeamt[%data.bulletType] += %amt;
-				%col.delete();
-			}
+			%data.onPickup(%col, %this);
 		}
 	}
 };

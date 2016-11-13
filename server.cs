@@ -10,6 +10,8 @@ exec("./support/lagcompensation.cs");
 exec("./support/hitregion.cs");
 exec("./support/movespeed.cs");
 
+exec("./prefs.cs");
+
 exec("./adventure_Effects.cs");
 
 exec("./sounds.cs");
@@ -18,24 +20,6 @@ exec("./magazines.cs");
 exec("./bullets.cs");
 exec("./damage.cs");
 exec("./misc/effects.cs");
-
-// temporary
-datablock PlayerData(DeathmatchPlayer : PlayerStandardArmor)
-{
-	uiName = "Deathmatch Player";
-
-	canJet = false;
-	airControl = 0.25;
-	mass = 120;
-
-	maxForwardSpeed = 10;
-	maxSideSpeed = 9;
-	maxBackwardSpeed = 8;
-
-	maxForwardCrouchSpeed = 3;
-	maxSideCrouchSpeed = 3;
-	maxBackwardCrouchSpeed = 2;
-};
 
 exec("./weapons/HE Grenade.cs");
 exec("./weapons/Colt 1911.cs");
@@ -88,7 +72,7 @@ function GameConnection::updateDetailedGunHelp(%this, %stop)
 {
 	%player = %this.player;
 
-	if (%stop || %this.disableDetailedGunHelp || !isObject(%player))
+	if (%stop || !$Pref::Server::ComplexWeapons::Display::ShowGunHelp || !isObject(%player))
 	{
 		if (%this.displayingGunHelp)
 		{
@@ -112,7 +96,19 @@ function GameConnection::updateDetailedGunHelp(%this, %stop)
 		return;
 	}
 
-	commandToClient(%this, 'CenterPrint', %image.getDetailedGunHelp(%player, 0), 0);
+	%text = %image.getDetailedGunHelp(%player, 0, %this.disableDetailedGunHelp);
+	if (%text $= "")
+	{
+		if (%this.displayingGunHelp)
+		{
+			commandToClient(%this, 'ClearCenterPrint');
+			%this.displayingGunHelp = false;
+		}
+
+		return;
+	}
+
+	commandToClient(%this, 'CenterPrint', %text, 0);
 	%this.displayingGunHelp = true;
 }
 
@@ -125,11 +121,11 @@ function serverCmdGunHelp(%client)
 
 	%image = %player.getMountedImage(0);
 
-	if (!isObject(%image))
+	if (!isObject(%image) || !isFunction(%image.getName(), "getGunHelp"))
+	{
+		messageClient(%client, '', "\c4Gun Help\c6: Please equip a \c3Complex Weapon\c6 to use this command.");
 		return;
-
-	if (!isFunction(%image.getName(), "getGunHelp"))
-		return;
+	}
 
 	messageClient(%client, '', "\c4Gun Help\c6: " @ %image.getGunHelp(%player, 0));
 }
@@ -156,11 +152,16 @@ function Player::debugWeapon(%this)
 
 function serverCmdToggleGunHelp(%client, %tog)
 {
+	if(!$Pref::Server::ComplexWeapons::Display::ShowGunHelp)
+	{
+		messageClient(%client, '', "\c4Gun Preferences\c6: On-screen gun help has been disabled by the host.");
+		return;
+	}
 	if(%tog $= "")
 		%tog = !%client.disableDetailedGunHelp;
 	%tog = MClampF(%tog, 0, 1);
 	%client.disableDetailedGunHelp = %tog;
-	messageClient(%client, '', "\c4Gun Preferences\c6: You have " @ (%tog ? "enabled" : "disabled") @ " on-screen gun help.");
+	messageClient(%client, '', "\c4Gun Preferences\c6: You have " @ (%tog ? "disabled" : "enabled") @ " on-screen gun help.");
 }
 
 function serverCmdDiscardEmptyMagazines(%client, %val)
@@ -173,11 +174,39 @@ function serverCmdDiscardEmptyMagazines(%client, %val)
 	}
 	%val = MClampF(%val, 0, 2);
 	%client.discardEmptyMagazine = %val;
-	messageClient(%client, '', "\c4Gun Preferences\c6: " @ %text);
+	switch (%val)
+	{
+		case 1: %text = "throw away empty magazies";
+		case 2: %text = "only keep last empty magazine";
+		default: %text = "not discard empty magazines";
+	}
+	messageClient(%client, '', "\c4Gun Preferences\c6: You will " @ %text @ ".");
 }
 
 package GunHelpPackage
 {
+	function ItemData::onAdd(%this, %item)
+	{
+		Parent::onAdd(%this, %item);
+		if (!isObject(%item.itemProps) && $Pref::Server::ComplexWeapons::Ammo::GunMags && %this.starterMag !$= "")
+		{
+			%props = %item.getItemProps();
+			%props.magazine = %this.starterMag.newItemProps(%props.sourcePlayer, %props.itemSlot);
+			%item.gunMagged = true;
+		}
+	}
+
+	function GameConnection::spawnPlayer(%this)
+	{
+		Parent::spawnPlayer(%this);
+
+		if(isObject(%obj = %this.player))
+		{
+			%obj.bulletCount[".357"] = $Pref::Server::ComplexWeapons::Ammo::357;
+			%obj.bulletCount["Buckshot"] = $Pref::Server::ComplexWeapons::Ammo::Buckshot;
+		}
+	}
+
 	function Player::mountImage(%this, %image, %slot, %loaded, %skinTag)
 	{
 		%client = %this.client;

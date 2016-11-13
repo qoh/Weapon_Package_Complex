@@ -88,6 +88,7 @@ datablock ItemData(MicroUziItem)
 	shellCollisionSFX = WeaponSoftImpactSFX;
 
 	itemPropsClass = "SimpleMagWeaponProps";
+	starterMag = MagazineItem_MicroUzi;
 };
 
 function MicroUziItem::onAdd(%this, %obj)
@@ -359,8 +360,9 @@ function MicroUziImage::getGunHelp(%this, %obj, %slot)
 	return "Your gun has no magazine inserted. Press the light key to insert whichever magazine you have with the most bullets.";
 }
 
-function MicroUziImage::getDetailedGunHelp(%this, %obj, %slot)
+function MicroUziImage::getDetailedGunHelp(%this, %obj, %slot, %hidden)
 {
+	if (%hidden) return;
 	%props = %obj.getItemProps();
 
 	%kt_lmb = "Primary";
@@ -465,7 +467,7 @@ function MicroUziEmptyImage::getGunHelp(%this, %obj, %slot)
 {
 	MicroUziImage::getGunHelp(%this,%obj,%slot);
 }
-function MicroUziEmptyImage::getDetailedGunHelp(%this, %obj, %slot)
+function MicroUziEmptyImage::getDetailedGunHelp(%this, %obj, %slot, %hidden)
 {
 	MicroUziImage::getDetailedGunHelp(%this,%obj,%slot);
 }

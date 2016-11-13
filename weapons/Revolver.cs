@@ -474,7 +474,7 @@ function RevolverImage::getGunHelp(%this, %obj, %slot)
 	return "Gun Help for Revolver is work in progress.";
 }
 
-function RevolverImage::getDetailedGunHelp(%this, %obj, %slot)
+function RevolverImage::getDetailedGunHelp(%this, %obj, %slot, %hidden)
 {
 	%props = %obj.getItemProps();
 
@@ -524,10 +524,13 @@ function RevolverImage::getDetailedGunHelp(%this, %obj, %slot)
 		if (%obj.bulletCount[%this.item.bulletType] <= 0 && %obj.bulletCount[%this.item.bulletType] != -1)
 			%ac_fire = "\c7";
 
-		%text = %text @ "<just:right><font:consolas:16>";
-		%text = %text @ %ac_fire     @ %at_fire     @ "   " @ %kt_lmb @ " \n";
-		%text = %text @ %ac_magazine @ %at_magazine @ "   " @ %kt_r   @ " \n";
-		%text = %text @ %ac_action   @ %at_action   @ "   " @ %kt_rmb @ " \n";
+		if (!%hidden)
+		{
+			%text = %text @ "<just:right><font:consolas:16>";
+			%text = %text @ %ac_fire     @ %at_fire     @ "   " @ %kt_lmb @ " \n";
+			%text = %text @ %ac_magazine @ %at_magazine @ "   " @ %kt_r   @ " \n";
+			%text = %text @ %ac_action   @ %at_action   @ "   " @ %kt_rmb @ " \n";
+		}
 
 		%color[0] = "\c8";
 		%color[1] = "\c6";
@@ -549,11 +552,14 @@ function RevolverImage::getDetailedGunHelp(%this, %obj, %slot)
 		%text = %text @ %start[5] @		"O" @ %end[5] @ " " @ %start[4] @ "O" @ %end[4];
 		return %text;
 	}
-	%text = %text @"<just:right><font:consolas:16>";
-	%text = %text @ %ac_fire     @ %at_fire     @ "   " @ %kt_lmb @ " \n";
-	%text = %text @ %ac_magazine @ %at_magazine @ "   " @ %kt_r   @ " \n";
-	%text = %text @ %ac_sl @ %at_sl @ "   " @ %kt_sl	@ " \n";
-	%text = %text @ %ac_sr @ %at_sr @ "   " @ %kt_sr	@ " \n";
+	if (!%hidden)
+	{
+		%text = %text @"<just:right><font:consolas:16>";
+		%text = %text @ %ac_fire     @ %at_fire     @ "   " @ %kt_lmb @ " \n";
+		%text = %text @ %ac_magazine @ %at_magazine @ "   " @ %kt_r   @ " \n";
+		%text = %text @ %ac_sl @ %at_sl @ "   " @ %kt_sl	@ " \n";
+		%text = %text @ %ac_sr @ %at_sr @ "   " @ %kt_sr	@ " \n";
+	}
 	return %text;
 }
 

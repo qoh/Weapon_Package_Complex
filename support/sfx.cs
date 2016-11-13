@@ -218,7 +218,7 @@ function SFXEffect::playTo(%this, %client, %position, %source)
 
     if (!isObject(%control))
     {
-        %client.debugSFX(%this, "not playing: no control object");
+        //%client.debugSFX(%this, "not playing: no control object");
         return;
     }
 
