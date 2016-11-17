@@ -153,6 +153,57 @@ function M1GarandImage::onFire(%this, %obj, %slot)
 	%obj.applyComplexScreenshake(1);
 }
 
+function M1GarandImage::onSuicide(%this, %obj, %slot)
+{
+	%image = %obj.getMountedImage(%slot);
+	%state = %obj.getImageState(%slot);
+	if(%state !$= "Ready" && %state !$= "Empty")
+	{
+		return 1;
+	}
+	%props = %obj.getItemProps();
+	if(%props.chamber != 1) //Empty
+	{
+		%obj.setImageTrigger(%slot, 1);
+		%obj.playThread(2, plant);
+	}
+	else
+	{
+		//What you're about to see below is probably the ugliest thing I ever coded. ~Jack Noir
+		%obj.playThread(2, shiftRight);
+		%obj.playThread(3, shiftLeft);
+		%obj.applyComplexKnockback(5);
+		serverPlay3D(M1GarandFireLastSound, %obj.getMuzzlePoint(%slot));
+		%obj.suiciding = 1;
+		%props.chamber = 2;
+		%obj.setImageTrigger(%slot, 1);
+		%proj = new ScriptObject()
+		{	
+			class = "ProjectileRayCast";
+			superClass = "TimedRayCast";
+
+			position = %obj.getEyePoint();
+			velocity = "0 0 0";
+
+			lifetime = %this.fireLifetime;
+			gravity = %this.fireGravity;
+
+			mask = %this.fireMask $= "" ? $TypeMasks::PlayerObjectType | $TypeMasks::FxBrickObjectType | $TypeMasks::TerrainObjectType : %this.fireMask;
+			exempt = "";
+			sourceObject = %obj;
+			sourceClient = %obj.client;
+			damage = %this.directDamage;
+			damageType = %this.directDamageType;
+			damageRef = %this;
+			hitExplosion = %this.projectile;
+		};
+		MissionCleanup.add(%proj);
+		%obj.setDamageLevel(%obj.getDataBlock().maxDamage - 1); //Set their HP to 1 so headshot will be a guaranteed instakill
+		%proj.fire();
+	}
+	return 1;
+}
+
 function M1GarandImage::onReload(%this, %obj, %slot)
 {
 	%this.pullSlide(%obj, %slot);
@@ -276,7 +327,7 @@ function M1GarandImage::getGunHelp(%this, %obj, %slot)
 
 function M1GarandImage::getDetailedGunHelp(%this, %obj, %slot, %hidden)
 {
-	if (%hidden) return;
+	if (%hidden) return "";
 	%props = %obj.getItemProps();
 
 	%kt_lmb = "Primary";

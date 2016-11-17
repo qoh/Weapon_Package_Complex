@@ -548,7 +548,7 @@ function HEGrenadeImage::getGunHelp(%this, %obj, %slot)
 
 function HEGrenadeImage::getDetailedGunHelp(%this, %obj, %slot, %hidden)
 {
-	if (%hidden) return;
+	if (%hidden) return "";
 	%props = %obj.getItemProps();
 	%state = %obj.getImageState(%slot);
 

@@ -529,9 +529,9 @@ function RevolverImage::getDetailedGunHelp(%this, %obj, %slot, %hidden)
 			%text = %text @ "<just:right><font:consolas:16>";
 			%text = %text @ %ac_fire     @ %at_fire     @ "   " @ %kt_lmb @ " \n";
 			%text = %text @ %ac_magazine @ %at_magazine @ "   " @ %kt_r   @ " \n";
-			%text = %text @ %ac_action   @ %at_action   @ "   " @ %kt_rmb @ " \n";
+			%text = %text @ %ac_action   @ %at_action   @ "   " @ %kt_rmb;
 		}
-
+		%text = %text @ " \n";
 		%color[0] = "\c8";
 		%color[1] = "\c6";
 		%color[2] = "\c3";

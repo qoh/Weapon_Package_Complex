@@ -185,6 +185,12 @@ package ItemPropsPackage
 				return;
 			}
 
+			%brick = %col.spawnBrick;
+			if(isObject(%brick) && isFunction(%brick.getClassName(), "onItemPickup"))
+			{
+				%brick.onItemPickup(%client);
+			}
+
 			%obj.tool[%i] = %data;
 
 			if (isObject(%col.itemProps))
@@ -200,7 +206,9 @@ package ItemPropsPackage
 			messageClient(%client, 'MsgItemPickup', '', %i, %data);
 
 			if (%col.isStatic())
+			{
 				%col.Respawn();
+			}
 			else
 				%col.delete();
 
