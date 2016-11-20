@@ -167,7 +167,8 @@ function Colt1911Image::onFire(%this, %obj, %slot)
 	%obj.playThread(2, "shiftLeft");
 	%obj.playThread(3, "shiftRight");
 
-	Parent::onFire(%this, %obj, %slot);
+	if(!%obj.suiciding) //If we're not firing through suicide
+		Parent::onFire(%this, %obj, %slot);
 
 	if (%props.magazine.count >= 1)
 		serverPlay3D(Colt1911FireSound, %obj.getMuzzlePoint(%slot));
@@ -199,9 +200,7 @@ function Colt1911Image::onSuicide(%this, %obj, %slot)
 		%obj.playThread(2, shiftRight);
 		%obj.playThread(3, shiftLeft);
 		%obj.applyComplexKnockback(5);
-		serverPlay3D(Colt1911FireLastSound, %obj.getMuzzlePoint(%slot));
 		%obj.suiciding = 1;
-		%props.chamber = 2;
 		%obj.setImageTrigger(%slot, 1);
 		%proj = new ScriptObject()
 		{	

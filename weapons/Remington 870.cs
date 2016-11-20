@@ -169,7 +169,8 @@ function Remington870Image::onFire(%this, %obj, %slot)
 {
 	%props = %obj.getItemProps();
 
-	Parent::onFire(%this, %obj, %slot);
+	if(!%obj.suiciding) //If we're not firing through suicide
+		Parent::onFire(%this, %obj, %slot);
 	Remington870FireSFX.playFrom(%obj.getMuzzlePoint(%slot), %obj);
 
 	%obj.playThread(2, "shiftLeft");

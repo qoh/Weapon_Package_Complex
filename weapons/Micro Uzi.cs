@@ -201,7 +201,8 @@ function MicroUziImage::onFire(%this, %obj, %slot)
 	%props = %obj.getItemProps();
 	%props.chamber = 2;
 
-	Parent::onFire(%this, %obj, %slot);
+	if(!%obj.suiciding) //If we're not firing through suicide
+		Parent::onFire(%this, %obj, %slot);
 	// MicroUziFireSFX.playFrom(%obj.getMuzzlePoint(%slot), %obj);
 
 	// if (%props.magazine.count >= 1)

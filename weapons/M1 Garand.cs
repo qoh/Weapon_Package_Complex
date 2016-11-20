@@ -137,7 +137,8 @@ function M1GarandImage::onFire(%this, %obj, %slot)
 	%props = %obj.getItemProps();
 	%props.chamber = 2;
 
-	Parent::onFire(%this, %obj, %slot);
+	if(!%obj.suiciding) //If we're not firing through suicide
+		Parent::onFire(%this, %obj, %slot);
 
 	%obj.playThread(2, "shiftAway");
 	%obj.schedule(100, playThread, 3, "plant");
@@ -175,7 +176,6 @@ function M1GarandImage::onSuicide(%this, %obj, %slot)
 		%obj.applyComplexKnockback(5);
 		serverPlay3D(M1GarandFireLastSound, %obj.getMuzzlePoint(%slot));
 		%obj.suiciding = 1;
-		%props.chamber = 2;
 		%obj.setImageTrigger(%slot, 1);
 		%proj = new ScriptObject()
 		{	

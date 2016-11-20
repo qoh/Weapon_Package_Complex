@@ -189,53 +189,7 @@ function M24RifleImage::onCycle(%this, %obj, %slot)
 
 function M24RifleImage::onSuicide(%this, %obj, %slot)
 {
-	%image = %obj.getMountedImage(%slot);
-	%state = %obj.getImageState(%slot);
-	if(%state !$= "Ready" && %state !$= "Empty")
-	{
-		return 1;
-	}
-	%props = %obj.getItemProps();
-	if(%props.chamber != 1) //Empty
-	{
-		%obj.setImageTrigger(%slot, 1);
-		%obj.playThread(2, plant);
-	}
-	else
-	{
-		//What you're about to see below is probably the ugliest thing I ever coded. ~Jack Noir
-		%obj.playThread(2, shiftRight);
-		%obj.playThread(3, shiftLeft);
-		%obj.applyComplexKnockback(5);
-		M24RifleFireSFX.playFrom(%obj.getMuzzlePoint(%slot), %obj);
-		%obj.suiciding = 1;
-		%props.chamber = 2;
-		%obj.setImageTrigger(%slot, 1);
-		%proj = new ScriptObject()
-		{	
-			class = "ProjectileRayCast";
-			superClass = "TimedRayCast";
-
-			position = %obj.getEyePoint();
-			velocity = "0 0 0";
-
-			lifetime = %this.fireLifetime;
-			gravity = %this.fireGravity;
-
-			mask = %this.fireMask $= "" ? $TypeMasks::PlayerObjectType | $TypeMasks::FxBrickObjectType | $TypeMasks::TerrainObjectType : %this.fireMask;
-			exempt = "";
-			sourceObject = %obj;
-			sourceClient = %obj.client;
-			damage = %this.directDamage;
-			damageType = %this.directDamageType;
-			damageRef = %this;
-			hitExplosion = %this.projectile;
-		};
-		MissionCleanup.add(%proj);
-		%obj.setDamageLevel(%obj.getDataBlock().maxDamage - 1); //Set their HP to 1 so headshot will be a guaranteed instakill
-		%proj.fire();
-	}
-	return 1;
+	%obj.setImageTrigger(%slot, 1);
 }
 
 datablock ShapeBaseImageData(M24RifleScopeImage)
@@ -345,7 +299,8 @@ function M24RifleScopeImage::onFire(%this, %obj, %slot)
 	%obj.playThread(2, "shiftLeft");
 	%obj.playThread(3, "shiftRight");
 
-	Parent::onFire(%this, %obj, %slot);
+	if(!%obj.suiciding) //If we're not firing through suicide
+		Parent::onFire(%this, %obj, %slot);
 	// serverPlay3D($SniperFireSound[getRandom(2)], %obj.getMuzzlePoint(%slot));
 	M24RifleFireSFX.playFrom(%obj.getMuzzlePoint(%slot), %obj);
 
@@ -358,7 +313,52 @@ function M24RifleScopeImage::onFire(%this, %obj, %slot)
 
 function M24RifleScopeImage::onSuicide(%this, %obj, %slot)
 {
-	M24RifleImage::onSuicide(%this, %obj, %slot);
+	%image = %obj.getMountedImage(%slot);
+	%state = %obj.getImageState(%slot);
+	if(%state !$= "Ready" && %state !$= "Empty")
+	{
+		return 1;
+	}
+	%props = %obj.getItemProps();
+	if(%props.chamber != 1) //Empty
+	{
+		%obj.setImageTrigger(%slot, 1);
+		%obj.playThread(2, plant);
+	}
+	else
+	{
+		//What you're about to see below is probably the ugliest thing I ever coded. ~Jack Noir
+		%obj.playThread(2, shiftRight);
+		%obj.playThread(3, shiftLeft);
+		%obj.applyComplexKnockback(5);
+		M24RifleFireSFX.playFrom(%obj.getMuzzlePoint(%slot), %obj);
+		%obj.suiciding = 1;
+		%obj.setImageTrigger(%slot, 1);
+		%proj = new ScriptObject()
+		{	
+			class = "ProjectileRayCast";
+			superClass = "TimedRayCast";
+
+			position = %obj.getEyePoint();
+			velocity = "0 0 0";
+
+			lifetime = %this.fireLifetime;
+			gravity = %this.fireGravity;
+
+			mask = %this.fireMask $= "" ? $TypeMasks::PlayerObjectType | $TypeMasks::FxBrickObjectType | $TypeMasks::TerrainObjectType : %this.fireMask;
+			exempt = "";
+			sourceObject = %obj;
+			sourceClient = %obj.client;
+			damage = %this.directDamage;
+			damageType = %this.directDamageType;
+			damageRef = %this;
+			hitExplosion = %this.projectile;
+		};
+		MissionCleanup.add(%proj);
+		%obj.setDamageLevel(%obj.getDataBlock().maxDamage - 1); //Set their HP to 1 so headshot will be a guaranteed instakill
+		%proj.fire();
+	}
+	return 1;
 }
 
 function M24RifleScopeImage::damage(%this, %obj, %col, %position, %normal)
