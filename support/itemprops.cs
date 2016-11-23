@@ -108,30 +108,45 @@ package ItemPropsPackage
 			%obj.itemProps.delete();
 	}
 
-	function serverCmdDropTool(%client, %index)
+	function ItemData::onPickup(%this, %col, %obj)
 	{
-		%player = %client.player;
-
-		if (isObject(%player.tool[%index]) && isObject(%player.itemProps[%index]))
-			$DroppedItemProps = %player.itemProps[%index];
-
-		Parent::serverCmdDropTool(%client, %index);
-
-		if (!isObject(%player.tool[%index]) && isObject(%player.itemProps[%index]))
+		if (!isObject(%col.itemProps) && !%col.getDataBlock().customPickupAlways)
 		{
-			if (isObject($DroppedItemProps))
-				$DroppedItemProps.delete();
-			else
-				$DroppedItemProps = "";
-
-			%player.itemProps[%index] = "";
+			return Parent::onPickup(%this, %col, %obj);
 		}
+		%client = %obj.client;
+		%i = $complexI;
+		$complexI = "";
+
+		%data = %col.getDataBlock();
+		%obj.tool[%i] = %data;
+
+		if (isObject(%col.itemProps))
+		{
+			%obj.itemProps[%i] = %col.itemProps;
+
+			// improve this later
+			%col.itemProps.itemSlot = %i;
+			%col.itemProps.onOwnerChange(%obj);
+			%col.itemProps = "";
+		}
+
+		messageClient(%client, 'MsgItemPickup', '', %i, %data);
+
+		if (%col.isStatic())
+		{
+			%col.Respawn();
+		}
+		else
+			%col.delete();
+
+		return 1;
 	}
 
-	function Armor::onCollision(%this, %obj, %col, %velocity, %speed)
+	function Player::pickup(%obj, %col)
 	{
 		if (%obj.getState() !$= "Dead" && %obj.getDamagePercent() < 1 &&
-			%col.getClassName() $= "Item" && (isObject(%col.itemProps) || %col.getDataBlock().customPickupAlways))
+			isObject(%col) && %col.getClassName() $= "Item" && (isObject(%col.itemProps) || %col.getDataBlock().customPickupAlways))
 		{
 			if (%col.canPickup == 0)
 				return;
@@ -150,7 +165,7 @@ package ItemPropsPackage
 					return;
 			}
 
-			for (%i = 0; %i < %this.maxTools; %i++)
+			for (%i = 0; %i < %obj.getDataBlock().maxTools; %i++)
 			{
 				if (!isObject(%obj.tool[%i]))
 					break;
@@ -159,7 +174,7 @@ package ItemPropsPackage
 					return;
 			}
 
-			if (%i == %this.maxTools)
+			if (%i == %obj.getDataBlock().maxTools)
 				return;
 
 			if (miniGameCanUse(%obj, %col) == 0)
@@ -185,36 +200,45 @@ package ItemPropsPackage
 				return;
 			}
 
-			%brick = %col.spawnBrick;
-			if(isObject(%brick) && isFunction(%brick.getClassName(), "onItemPickup"))
-			{
-				%brick.onItemPickup(%client);
-			}
+			//%brick = %col.spawnBrick;
+			//if(isObject(%brick) && isFunction(%brick.getClassName(), "onItemPickup"))
+			//{
+			//	%brick.onItemPickup(%client);
+			//}
 
-			%obj.tool[%i] = %data;
+			$complexI = %i;
+			return %data.onPickup(%col, %obj);
+		}
+		return Parent::pickup(%obj, %col);
+	}
 
-			if (isObject(%col.itemProps))
-			{
-				%obj.itemProps[%i] = %col.itemProps;
+	function serverCmdDropTool(%client, %index)
+	{
+		%player = %client.player;
 
-				// improve this later
-				%col.itemProps.itemSlot = %i;
-				%col.itemProps.onOwnerChange(%obj);
-				%col.itemProps = "";
-			}
+		if (isObject(%player.tool[%index]) && isObject(%player.itemProps[%index]))
+			$DroppedItemProps = %player.itemProps[%index];
 
-			messageClient(%client, 'MsgItemPickup', '', %i, %data);
+		Parent::serverCmdDropTool(%client, %index);
 
-			if (%col.isStatic())
-			{
-				%col.Respawn();
-			}
+		if (!isObject(%player.tool[%index]) && isObject(%player.itemProps[%index]))
+		{
+			if (isObject($DroppedItemProps))
+				$DroppedItemProps.delete();
 			else
-				%col.delete();
+				$DroppedItemProps = "";
 
+			%player.itemProps[%index] = "";
+		}
+	}
+
+	function Armor::onCollision(%this, %obj, %col, %velocity, %speed)
+	{
+		if (isObject(%col) && %col.getClassName() $= "Item" && (isObject(%col.itemProps) || %col.getDataBlock().customPickupAlways))
+		{
+			%obj.pickup(%col);
 			return;
 		}
-
 		Parent::onCollision(%this, %obj, %col, %velocity, %speed);
 	}
 
